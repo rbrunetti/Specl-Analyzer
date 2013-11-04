@@ -52,6 +52,12 @@ public class FunctionHelper {
 			} else {
 				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 0)");
 			}
+		case "lowercase":
+			if (params == null) {
+				return ((String) object).toLowerCase();
+			} else {
+				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 0)");
+			}
 		case "length":
 			if (params == null) {
 				return (double) ((String) object).length();
@@ -118,7 +124,6 @@ public class FunctionHelper {
 				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 0)");
 			}
 		default:
-			//return null;
 			throw new Exception("Unsupported function '" + name + "' for a " + object.getClass().getSimpleName() + " (value: \"" + object + "\")");
 		}
 	}
@@ -157,7 +162,6 @@ public class FunctionHelper {
 				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 0)");
 		}
 		default:
-			//return null;
 			throw new Exception("Unsupported function '" + name + "' for a " + object.getClass().getSimpleName() + " (value: \"" + object + "\")");
 		}
 	}
@@ -191,8 +195,6 @@ public class FunctionHelper {
 			if (params.size() == 1) {
 				if (params.get(0) instanceof String) {
 					Set<Object> results = ((DataObject) object).get((String) params.get(0));
-					
-					// TODO da rivedere...
 					if (results.size() == 0) {
 						throw new Exception("The property '" + (String) params.get(0) + "' is not contained in '" + ((DataObject) object).toString() + "'");
 					} else if (results.size() > 1) {
@@ -220,7 +222,6 @@ public class FunctionHelper {
 				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 0)");
 			}
 		default:
-			//return null;
 			throw new Exception("Unsupported function '" + name + "' for a " + object.getClass().getSimpleName() + " (value: \"" + object + "\")");
 		}
 	}
@@ -275,7 +276,6 @@ public class FunctionHelper {
 				throw new Exception("Wrong number of parameters for function '" + function.getName() + "' (" + params.size() + " instead of 0)");
 			}
 		default:
-			//return null;
 			throw new Exception("Unsupported function '" + function.getName() + "' for a " + object.getClass().getSimpleName() + " (value: \"" + object + "\")");
 		}
 	}

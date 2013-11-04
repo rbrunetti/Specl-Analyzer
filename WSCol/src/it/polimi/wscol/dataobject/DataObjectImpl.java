@@ -33,13 +33,12 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 
 public class DataObjectImpl implements DataObject {
-	
+
 	/**
 	 * {@link LinkedHashMultimap} containing the data
 	 */
 	private LinkedHashMultimap<String, Object> data;
-	
-	
+
 	// ************************
 	// ***** CONSTRUCTORS *****
 	// ************************
@@ -54,18 +53,20 @@ public class DataObjectImpl implements DataObject {
 	/**
 	 * Builds the {@link DataObject} starting from a passed {@link LinkedHashMultimap}
 	 * 
-	 * @param data the {@link LinkedHashMultimap} from which data are copied
+	 * @param data
+	 *            the {@link LinkedHashMultimap} from which data are copied
 	 */
 	public DataObjectImpl(LinkedHashMultimap<String, Object> data) {
 		this.data = data;
 	}
 
 	/**
-	 * Builds the {@link DataObject} as a single pair key-value, where the value is a list of {@link Object}
-	 * (used for the representation of {@link Values} elements)
+	 * Builds the {@link DataObject} as a single pair key-value, where the value is a list of {@link Object} (used for the representation of {@link Values} elements)
 	 * 
-	 * @param name the key name
-	 * @param values the list of values to associate with the key
+	 * @param name
+	 *            the key name
+	 * @param values
+	 *            the list of values to associate with the key
 	 */
 	public DataObjectImpl(String name, List<Object> values) {
 		data = LinkedHashMultimap.create();
@@ -77,34 +78,38 @@ public class DataObjectImpl implements DataObject {
 	/**
 	 * Builds the {@link DataObject} from the parsing of JSON code or an XML file
 	 * 
-	 * @param string the JSON code or the path of the XML file to parse
-	 * @param isJson if <code>true</code> the string param is intendes as JSON, otherwise as the path of the XML file to read
+	 * @param string
+	 *            the JSON code or the path of the XML file to parse
+	 * @param isJson
+	 *            if <code>true</code> the string param is intendes as JSON, otherwise as the path of the XML file to read
 	 */
 	public DataObjectImpl(String string, boolean isJson) {
-		if(isJson) {
+		if (isJson) {
 			data = parseJSON(string);
 		} else {
 			data = parseXML(string);
 		}
 	}
-	
+
 	// ****************************
 	// ***** XPATH NAVIGATION *****
 	// ****************************
-	
+
 	/**
 	 * Method for the evaluation of a Query
 	 * 
-	 * @param query the {@link Query} to evaluate
+	 * @param query
+	 *            the {@link Query} to evaluate
 	 * @return a {@link DataObject} containing the results of the query
-	 * @throws Exception if the evaluation goes wrong (see the called method for the specific exception)
+	 * @throws Exception
+	 *             if the evaluation goes wrong (see the called method for the specific exception)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object evaluate(EList<Step> steps) throws Exception {
 		Object current = new DataObjectImpl(data);
 		for (Step s : steps) {
-			if(s.getPlaceholder() == null) {
+			if (s.getPlaceholder() == null) {
 				current = getSubmap(current, s.getName(), s.getAttribute());
 			}
 		}
@@ -113,20 +118,23 @@ public class DataObjectImpl implements DataObject {
 		}
 		return current;
 	}
-	
 
 	/**
 	 * Static method for the evaluation of a Query on an {@link ArrayList}
-	 * @param arrayList the {@link ArrayList} containing the objects to evaluate
-	 * @param steps the {@link Step}s for the navigation
+	 * 
+	 * @param arrayList
+	 *            the {@link ArrayList} containing the objects to evaluate
+	 * @param steps
+	 *            the {@link Step}s for the navigation
 	 * @return the result of the query
-	 * @throws Exception if the evaluation goes wrong (see the called method for the specific exception)
+	 * @throws Exception
+	 *             if the evaluation goes wrong (see the called method for the specific exception)
 	 */
 	@SuppressWarnings("unchecked")
 	public static Object evaluateArray(ArrayList<Object> arrayList, EList<Step> steps) throws Exception {
 		Object current = arrayList;
-		for(Step s : steps){
-			if(s.getPlaceholder() == null) {
+		for (Step s : steps) {
+			if (s.getPlaceholder() == null) {
 				current = getSubmap(current, s.getName(), s.getAttribute());
 			}
 		}
@@ -139,45 +147,48 @@ public class DataObjectImpl implements DataObject {
 	/**
 	 * Search the specified key in the DataObject and return the corresponding DataObject value
 	 * 
-	 * @param current the {@link DataObject} in which the search is done
-	 * @param property the searched key/property in the {@link DataObject}
+	 * @param current
+	 *            the {@link DataObject} in which the search is done
+	 * @param property
+	 *            the searched key/property in the {@link DataObject}
 	 * @return a {@link DataObject} corresponding to the searched value (if found)
-	 * @throws Exception if the searched property is not found
+	 * @throws Exception
+	 *             if the searched property is not found
 	 */
 	@SuppressWarnings("unchecked")
 	private static Object getSubmap(Object current, String property, Attribute attribute) throws Exception {
 		if (current instanceof ArrayList) {
 			List<Object> list = new ArrayList<>();
 			int index = -1;
-			if(attribute != null){
+			if (attribute != null) {
 				index = evaluateNumericAttribute(attribute) - 1;
-				if(index >= 0){
+				if (index >= 0) {
 					attribute = null;
 				}
 			}
-			for(Object obj:((ArrayList<Object>)current)){
+			for (Object obj : ((ArrayList<Object>) current)) {
 				Object subMap = getSubmap(obj, property, attribute);
-				if(subMap instanceof ArrayList){
-					for(Object elem : (ArrayList<Object>)subMap) {
-						if(!list.contains(elem)) {
+				if (subMap instanceof ArrayList) {
+					for (Object elem : (ArrayList<Object>) subMap) {
+						if (!list.contains(elem)) {
 							list.add(elem);
 						}
 					}
 				} else {
-					if(!list.contains(subMap)){
+					if (!list.contains(subMap)) {
 						list.add(subMap);
 					}
 				}
 			}
-			
-			if(index >= 0){
+
+			if (index >= 0) {
 				if (index >= list.size()) {
 					throw new Exception("Index out of bound (index = " + index + ", actual size = " + list.size() + ")");
 				} else {
 					return list.get(index);
 				}
 			} else {
-				if(list.size() == 1){
+				if (list.size() == 1) {
 					return list.get(0);
 				}
 				return list;
@@ -185,40 +196,39 @@ public class DataObjectImpl implements DataObject {
 		} else if (current instanceof DataObject) {
 			if (((DataObject) current).keySet().contains(property)) {
 				Set<Object> values = ((DataObject) current).get(property);
-//				if (values.size() > 1) {
-					List<Object> list = new ArrayList<>(values);
-					if (attribute != null) {
-						int numericAttribute = evaluateNumericAttribute(attribute);
-						if (numericAttribute > 0) {
-							if (numericAttribute > list.size()) {
-								throw new Exception("Index out of bound (index = " + numericAttribute + ", actual size = " + list.size() + ")");
-							} else {
-								return list.get(numericAttribute-1);
-							}
+				// if (values.size() > 1) {
+				List<Object> list = new ArrayList<>(values);
+				if (attribute != null) {
+					int numericAttribute = evaluateNumericAttribute(attribute);
+					if (numericAttribute > 0) {
+						if (numericAttribute > list.size()) {
+							throw new Exception("Index out of bound (index = " + numericAttribute + ", actual size = " + list.size() + ")");
 						} else {
-							list.clear();
-							Iterator<Object> iter = values.iterator();
-							while (iter.hasNext()) {
-								Object next = iter.next();
-								if (next instanceof DataObject) {
-									if (checkAttribute((DataObjectImpl) next, attribute)) {
-										list.add((DataObject) next);
-									}
-								} else {
-									// TODO sistema
-									throw new Exception("Could not apply the attribute '" + attribute.toString() + "' to element '" + property + "' of type '" + next.getClass().getSimpleName() + "'");
+							return list.get(numericAttribute - 1);
+						}
+					} else {
+						list.clear();
+						Iterator<Object> iter = values.iterator();
+						while (iter.hasNext()) {
+							Object next = iter.next();
+							if (next instanceof DataObject) {
+								if (checkAttribute((DataObjectImpl) next, attribute)) {
+									list.add((DataObject) next);
 								}
+							} else {
+								throw new Exception("Could not apply that attribute to element '" + property + "' of type '" + next.getClass().getSimpleName() + "'");
 							}
 						}
 					}
-					
-					if(list.size() == 1){
-						return list.get(0);
-					}
-					return list;
-//				} else {
-//					return values.iterator().next();
-//				}
+				}
+
+				if (list.size() == 1) {
+					return list.get(0);
+				}
+				return list;
+				// } else {
+				// return values.iterator().next();
+				// }
 			}
 			throw new Exception("The property '" + property + "' is not contained in '" + current.toString() + "'");
 		} else {
@@ -245,10 +255,13 @@ public class DataObjectImpl implements DataObject {
 	/**
 	 * Evaluate the attributes on a passed {@link DataObject}
 	 * 
-	 * @param current {@link DataObject} on which the attribute is verified
-	 * @param attribute {@link Attribute} to check
+	 * @param current
+	 *            {@link DataObject} on which the attribute is verified
+	 * @param attribute
+	 *            {@link Attribute} to check
 	 * @return {@link DataObject} selected from 'current' with the corresponding attribute, <code>null</code> if the attribute is not respected
-	 * @throws Exception if the searched property is not found
+	 * @throws Exception
+	 *             if the searched property is not found
 	 */
 	private static boolean checkAttribute(DataObjectImpl current, Attribute attribute) throws Exception {
 		String key = attribute.getProperty();
@@ -280,7 +293,7 @@ public class DataObjectImpl implements DataObject {
 						return true;
 					} else if (op.equals("!=") && !current.containsEntry(key, strValue)) {
 						return true;
-					} else if(!(op.equals("!=") || op.equals("=="))){ // runtime check in the case that the strValue is obtained by a variable (so there's not static analysis of tokens)
+					} else if (!(op.equals("!=") || op.equals("=="))) { // runtime check in the case that the strValue is obtained by a variable (so there's not static analysis of tokens)
 						throw new Exception("Unsupported operation '" + op + "' for a String.");
 					} else {
 						return false;
@@ -322,38 +335,41 @@ public class DataObjectImpl implements DataObject {
 		}
 		throw new Exception("The property '" + key + "' is not contained in '" + current.toString() + "'");
 	}
-	
+
 	// ***************************
 	// ***** SUPPORT METHODS *****
 	// ***************************
-	
+
 	/**
 	 * Returns a collection view of all values associated with a key.
 	 * 
-	 * @param key key to search for in the {@link DataObject}
+	 * @param key
+	 *            key to search for in the {@link DataObject}
 	 * @return the collection of values that the key maps to
 	 * @see com.google.common.collect.AbstractSetMultimap#get(Object)
 	 */
 	public Set<Object> get(String property) {
 		return data.get(property);
-		
+
 	}
-	
+
 	/**
 	 * Returns the i-th element of the {@link DataObject}
-	 *  
-	 * @param index the i-th element to extract
+	 * 
+	 * @param index
+	 *            the i-th element to extract
 	 * @return the i-th element if present
-	 * @throws Exception if the index is out of bound
+	 * @throws Exception
+	 *             if the index is out of bound
 	 */
 	public Object get(int index) throws Exception {
 		Object[] valuesArray = values().toArray();
-		if(index >= valuesArray.length){
+		if (index >= valuesArray.length) {
 			throw new Exception("Index out of bound (index = " + index + ", actual size = " + valuesArray.length + ")");
 		}
 		return valuesArray[index];
 	}
-	
+
 	/**
 	 * Returns the size of the {@link DataObject} (the number of pairs key-value)
 	 */
@@ -379,17 +395,17 @@ public class DataObjectImpl implements DataObject {
 	}
 
 	/**
-	 * Returns <code>true</code> if the {@link Multimap} contains no key-value pairs. 
+	 * Returns <code>true</code> if the {@link Multimap} contains no key-value pairs.
 	 */
 	public boolean isEmpty() {
 		return data.isEmpty();
 	}
 
 	/**
-	 * Search the passed target through the values of the {@link DataObject}.
-	 * The search is deep, so every nested {@link DataObject} value is inspected.
+	 * Search the passed target through the values of the {@link DataObject}. The search is deep, so every nested {@link DataObject} value is inspected.
 	 * 
-	 * @param target the {@link Object} to search (possible types are {@link String}, {@link Double} and {@link DataObject})
+	 * @param target
+	 *            the {@link Object} to search (possible types are {@link String}, {@link Double} and {@link DataObject})
 	 * @return <code>true</code> if the target is found, <code>false</code> otherwise
 	 */
 	public boolean contains(Object target) {
@@ -410,7 +426,7 @@ public class DataObjectImpl implements DataObject {
 		} else if (data.containsValue(target)) { // if the target is a simple object (String or Double)
 			return true;
 		}
-		
+
 		Iterator<Object> iter = this.values().iterator();
 		while (iter.hasNext()) {
 			Object elem = iter.next();
@@ -505,14 +521,16 @@ public class DataObjectImpl implements DataObject {
 	public boolean putAll(DataObjectImpl dataObject) {
 		return data.putAll(dataObject.data);
 	}
-	
+
 	/**
 	 * Returns <code>true</code> if the passed object is a number, <code>false</code> othewise
 	 * 
-	 * @param elem the object to check
+	 * @param elem
+	 *            the object to check
 	 */
 	private boolean isNumeric(Object elem) {
-		if(elem instanceof Double) return true;
+		if (elem instanceof Double)
+			return true;
 		try {
 			Double.valueOf(elem.toString());
 			return true;
@@ -528,7 +546,8 @@ public class DataObjectImpl implements DataObject {
 	/**
 	 * Returns the {@link LinkedHashMultimap} corresponding to the input XML file
 	 * 
-	 * @param xmlPath the path of the XML file to parse
+	 * @param xmlPath
+	 *            the path of the XML file to parse
 	 * @return the corresponding {@link LinkedHashMultimap} parsed from the XML
 	 */
 	private LinkedHashMultimap<String, Object> parseXML(String xmlPath) {
@@ -551,25 +570,37 @@ public class DataObjectImpl implements DataObject {
 	/**
 	 * Navigate recursively through the XML nodes and translate them to a {@link DataObject}
 	 * 
-	 * @param root the root {@link Node} of an XML portion of file
+	 * @param root
+	 *            the root {@link Node} of an XML portion of file
 	 * @return a {@link DataObject} conversion of XML
 	 */
 	private DataObjectImpl stepThroughXML(Node root) {
 		String name = root.getNodeName();
 		DataObjectImpl father = new DataObjectImpl();
 		DataObjectImpl sons = new DataObjectImpl();
+
+		// clear all the useless nodes
+		for (int i = 0; i < root.getChildNodes().getLength(); i++) {
+			Node s = root.getChildNodes().item(i);
+			if (s.getNodeName().equals("#text"))
+				root.removeChild(s);
+		}
+
 		for (int i = 0; i < root.getChildNodes().getLength(); i++) {
 			Node son = root.getChildNodes().item(i);
-			if (son instanceof Text) {
-				String value = son.getNodeValue().trim();
-				if (!value.equals("")) {
+			String sn = son.getNodeName().trim();
+			// String sv = son.getNodeValue();
+			String st = son.getTextContent().trim();
+			if (son.getChildNodes().getLength() == 0 || (son.getChildNodes().getLength() == 1 && son.getFirstChild() instanceof Text)) {
+				if (!st.equals("")) { // TODO valuta!
 					try {
-						double num = Double.parseDouble(value);
-						father.put(name, num);
+						double num = Double.parseDouble(st);
+						sons.put(sn, num);
 					} catch (NumberFormatException e) {
-						father.put(name, value);
+						sons.put(sn, st);
 					}
-					return father;
+				} else {
+					sons.put(sn, new DataObjectImpl());
 				}
 			} else {
 				sons.putAll(stepThroughXML(son));
@@ -582,33 +613,35 @@ public class DataObjectImpl implements DataObject {
 	// ********************************
 	// ***** JSON PARSING METHODS *****
 	// ********************************
-	
+
 	/**
 	 * Parse JSON to DataObject
 	 * 
-	 * @param json the json object to parse 
+	 * @param json
+	 *            the json object to parse
 	 * @return a {@link LinkedHashMultimap} corresponding to the JSON input
 	 */
 	@SuppressWarnings("rawtypes")
 	private LinkedHashMultimap<String, Object> parseJSON(String json) {
-		LinkedHashMultimap<String, Object> dataMap = LinkedHashMultimap.create();;
+		LinkedHashMultimap<String, Object> dataMap = LinkedHashMultimap.create();
+		;
 		JSONParser jsonParser = new JSONParser();
 		try {
 			Map map = (Map) jsonParser.parse(json);
 			Iterator iter = map.entrySet().iterator();
-			while(iter.hasNext()){
+			while (iter.hasNext()) {
 				Map.Entry next = (Map.Entry) iter.next();
 				Object value = next.getValue();
 				String key = (String) next.getKey();
-				if(value instanceof JSONObject){
+				if (value instanceof JSONObject) {
 					dataMap.put(key, stepThroughJSON((JSONObject) value));
-				} else if(value instanceof JSONArray) {
-					for(int i=0; i<((JSONArray)value).size(); i++){
-						Object elem = ((JSONArray)value).get(i);
-						if(elem instanceof JSONObject){
+				} else if (value instanceof JSONArray) {
+					for (int i = 0; i < ((JSONArray) value).size(); i++) {
+						Object elem = ((JSONArray) value).get(i);
+						if (elem instanceof JSONObject) {
 							dataMap.put(key, stepThroughJSON((JSONObject) elem));
 						} else {
-							if(isNumeric(elem)){
+							if (isNumeric(elem)) {
 								dataMap.put(key, Double.valueOf(elem.toString())); // numbers are parsed as Long, so it's converted to Double
 							} else {
 								dataMap.put(key, elem);
@@ -616,7 +649,7 @@ public class DataObjectImpl implements DataObject {
 						}
 					}
 				} else {
-					if(isNumeric(value)) {
+					if (isNumeric(value)) {
 						dataMap.put(key, Double.valueOf(value.toString())); // numbers are parsed as Long, so it's converted to Double
 					} else {
 						dataMap.put(key, value);
@@ -631,26 +664,29 @@ public class DataObjectImpl implements DataObject {
 
 	/**
 	 * Navigate recursively through the JSON object and converts elements to DataObject
-	 * @param obj the {@link JSONObject} to convert
+	 * 
+	 * @param obj
+	 *            the {@link JSONObject} to convert
 	 * @return a {@link DataObject} corresponding to the passed {@link JSONObject}
 	 */
 	@SuppressWarnings("rawtypes")
-	private DataObject stepThroughJSON(JSONObject obj){
-		LinkedHashMultimap<String, Object> dataMap = LinkedHashMultimap.create();;
+	private DataObject stepThroughJSON(JSONObject obj) {
+		LinkedHashMultimap<String, Object> dataMap = LinkedHashMultimap.create();
+		;
 		Iterator iterator = obj.entrySet().iterator();
-		while(iterator.hasNext()){
+		while (iterator.hasNext()) {
 			Map.Entry next = (Map.Entry) iterator.next();
 			Object value = next.getValue();
 			String key = (String) next.getKey();
-			if(value instanceof JSONObject){
+			if (value instanceof JSONObject) {
 				dataMap.put(key, stepThroughJSON((JSONObject) value));
-			} else if(value instanceof JSONArray) {
-				for(int i=0; i<((JSONArray)value).size(); i++){
-					Object elem = ((JSONArray)value).get(i);
-					if(elem instanceof JSONObject){
+			} else if (value instanceof JSONArray) {
+				for (int i = 0; i < ((JSONArray) value).size(); i++) {
+					Object elem = ((JSONArray) value).get(i);
+					if (elem instanceof JSONObject) {
 						dataMap.put(key, stepThroughJSON((JSONObject) elem));
 					} else {
-						if(isNumeric(elem)){
+						if (isNumeric(elem)) {
 							dataMap.put(key, Double.valueOf(elem.toString())); // numbers are parsed as Long, so it's converted to Double
 						} else {
 							dataMap.put(key, elem);
@@ -658,7 +694,7 @@ public class DataObjectImpl implements DataObject {
 					}
 				}
 			} else {
-				if(isNumeric(value)) {
+				if (isNumeric(value)) {
 					dataMap.put(key, Double.valueOf(value.toString())); // numbers are parsed as Long, so it's converted to Double
 				} else {
 					dataMap.put(key, value);
@@ -667,11 +703,10 @@ public class DataObjectImpl implements DataObject {
 		}
 		return new DataObjectImpl(dataMap);
 	}
-	
+
 	// **************************
 	// ***** OBJECT METHODS *****
 	// **************************
-	
 
 	@Override
 	public String toString() {
@@ -700,8 +735,10 @@ public class DataObjectImpl implements DataObject {
 	/**
 	 * Search and compare every single key-value pair
 	 * 
-	 * @param a the {@link DataObject} to compare
-	 * @param b the {@link DataObject} to compare
+	 * @param a
+	 *            the {@link DataObject} to compare
+	 * @param b
+	 *            the {@link DataObject} to compare
 	 * @return <code>true</code> if the {@link DataObject} are deeply equals, <code>false</code> otherwise
 	 */
 	private boolean deepEqual(DataObject a, DataObject b) {

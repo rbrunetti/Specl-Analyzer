@@ -100,7 +100,7 @@ public class Main {
 
 		System.out.println("################## RULES ###################");
 		System.out.println(declarations.size() + " variable declarated.");
-		System.out.println("??? assertions has been found.\n"); //TODO conteggio eliminato
+//		System.out.println("??? assertions has been found.\n"); //TODO conteggio eliminato
 
 		// get variables declaration and sets the hashmap
 		try {

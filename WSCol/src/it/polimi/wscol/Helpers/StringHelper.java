@@ -9,7 +9,7 @@ import it.polimi.wscol.wscol.AssertionOr;
 import it.polimi.wscol.wscol.AssertionQuantified;
 import it.polimi.wscol.wscol.AssertionStdCmp;
 import it.polimi.wscol.wscol.Assertions;
-import it.polimi.wscol.wscol.Attribute;
+import it.polimi.wscol.wscol.Predicate;
 import it.polimi.wscol.wscol.Constant;
 import it.polimi.wscol.wscol.Declaration;
 import it.polimi.wscol.wscol.Function;
@@ -104,8 +104,7 @@ public class StringHelper {
 		} else if (a.getValues() != null) {
 			res = valuesToList(a.getValues()).toString();
 		} else {
-//			res = String.valueOf(a.isBoolean());
-			return null;
+			res = String.valueOf(a.isBoolean());
 		}
 		res += functionsToString(a.getFunctions());
 		return res;
@@ -157,7 +156,7 @@ public class StringHelper {
 		}
 		
 		String res = '/' + s.getName();
-		Attribute attribute = s.getAttribute();
+		Predicate attribute = s.getPredicate();
 		
 		// check if it contains an attribute
 		if (attribute != null) {
@@ -188,7 +187,8 @@ public class StringHelper {
 	 * @param values the {@link Values} to represent
 	 * @return the {@link String} representing the passed {@link Values}
 	 */
-	private static List<Object> valuesToList(Values values) {
+	 //TODO trovagli un'altra posizione...
+	public static List<Object> valuesToList(Values values) {
 		List<Object> result = new ArrayList<>();
 		for (Value c : values.getValue()) {
 			if (c instanceof Constant) {

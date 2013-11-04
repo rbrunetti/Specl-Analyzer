@@ -1,6 +1,6 @@
 package it.polimi.wscol.declaration;
 
-import it.polimi.wscol.Main;
+import it.polimi.wscol.WSCoL;
 import it.polimi.wscol.Helpers.FunctionHelper;
 import it.polimi.wscol.Helpers.StringHelper;
 import it.polimi.wscol.assertions.AssertionService;
@@ -43,8 +43,8 @@ public class DeclarationServiceImpl implements DeclarationService{
 		System.out.println("############### DECLARATIONS ###############");
 		for (Declaration d : declarations) {
 			String assertionRep = StringHelper.declarationToString(d);
-			if (Main.getVariable(d.getVar()) != null) {
-				throw new Exception("The variable '" + d.getVar() + "' in '" + StringHelper.declarationToString(d) + "' is already used (" + d.getVar() + " = " + Main.getVariable(d.getVar()) + "). Choose another [token: '" + assertionRep + "']");
+			if (WSCoL.getVariable(d.getVar()) != null) {
+				throw new Exception("The variable '" + d.getVar() + "' in '" + StringHelper.declarationToString(d) + "' is already used (" + d.getVar() + " = " + WSCoL.getVariable(d.getVar()) + "). Choose another [token: '" + assertionRep + "']");
 			}
 			if (d.getAssert().getConstant() != null) {
 				if (d.getAssert().getConstant().getString() != null) {
@@ -83,11 +83,11 @@ public class DeclarationServiceImpl implements DeclarationService{
 
 			} else if (d.getAssert() instanceof AssertionQuantified) {
 				result = as.doAssertionQuantified(d.getAssert());
-//			} else {
-//				result = d.getAssert().isBoolean();
+			} else {
+				result = d.getAssert().isBoolean();
 			}
 
-			Main.putVariable(d.getVar(), result);
+			WSCoL.putVariable(d.getVar(), result);
 			System.out.println(StringHelper.declarationToString(d));
 		}
 		return;

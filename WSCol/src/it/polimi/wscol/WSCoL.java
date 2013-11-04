@@ -33,7 +33,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 
-public class Main {
+public class WSCoL {
 	
 	@Inject
 	private Provider<ResourceSet> resourceSetProvider;
@@ -68,7 +68,7 @@ public class Main {
 	
 	public static void main(String[] args) {
 		Injector injector = new it.polimi.wscol.WSColStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
-		Main main = injector.getInstance(Main.class);
+		WSCoL main = injector.getInstance(WSCoL.class);
 		
 		variablesSetUp(args);
 		

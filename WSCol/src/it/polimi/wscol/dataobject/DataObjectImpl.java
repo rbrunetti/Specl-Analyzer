@@ -1,7 +1,7 @@
 package it.polimi.wscol.dataobject;
 
-import it.polimi.wscol.Main;
-import it.polimi.wscol.wscol.Attribute;
+import it.polimi.wscol.WSCoL;
+import it.polimi.wscol.wscol.Predicate;
 import it.polimi.wscol.wscol.Step;
 
 import java.io.File;
@@ -110,7 +110,7 @@ public class DataObjectImpl implements DataObject {
 		Object current = new DataObjectImpl(data);
 		for (Step s : steps) {
 			if (s.getPlaceholder() == null) {
-				current = getSubmap(current, s.getName(), s.getAttribute());
+				current = getSubmap(current, s.getName(), s.getPredicate());
 			}
 		}
 		if (current instanceof ArrayList && ((ArrayList<Object>) current).size() == 1) {
@@ -135,7 +135,7 @@ public class DataObjectImpl implements DataObject {
 		Object current = arrayList;
 		for (Step s : steps) {
 			if (s.getPlaceholder() == null) {
-				current = getSubmap(current, s.getName(), s.getAttribute());
+				current = getSubmap(current, s.getName(), s.getPredicate());
 			}
 		}
 		if (current instanceof ArrayList && ((ArrayList<Object>) current).size() == 1) {
@@ -156,18 +156,18 @@ public class DataObjectImpl implements DataObject {
 	 *             if the searched property is not found
 	 */
 	@SuppressWarnings("unchecked")
-	private static Object getSubmap(Object current, String property, Attribute attribute) throws Exception {
+	private static Object getSubmap(Object current, String property, Predicate predicate) throws Exception {
 		if (current instanceof ArrayList) {
 			List<Object> list = new ArrayList<>();
 			int index = -1;
-			if (attribute != null) {
-				index = evaluateNumericAttribute(attribute) - 1;
+			if (predicate != null) {
+				index = evaluateNumericPredicate(predicate) - 1;
 				if (index >= 0) {
-					attribute = null;
+					predicate = null;
 				}
 			}
 			for (Object obj : ((ArrayList<Object>) current)) {
-				Object subMap = getSubmap(obj, property, attribute);
+				Object subMap = getSubmap(obj, property, predicate);
 				if (subMap instanceof ArrayList) {
 					for (Object elem : (ArrayList<Object>) subMap) {
 						if (!list.contains(elem)) {
@@ -198,13 +198,13 @@ public class DataObjectImpl implements DataObject {
 				Set<Object> values = ((DataObject) current).get(property);
 				// if (values.size() > 1) {
 				List<Object> list = new ArrayList<>(values);
-				if (attribute != null) {
-					int numericAttribute = evaluateNumericAttribute(attribute);
-					if (numericAttribute > 0) {
-						if (numericAttribute > list.size()) {
-							throw new Exception("Index out of bound (index = " + numericAttribute + ", actual size = " + list.size() + ")");
+				if (predicate != null) {
+					int numericPredicate = evaluateNumericPredicate(predicate);
+					if (numericPredicate > 0) {
+						if (numericPredicate > list.size()) {
+							throw new Exception("Index out of bound (index = " + numericPredicate + ", actual size = " + list.size() + ")");
 						} else {
-							return list.get(numericAttribute - 1);
+							return list.get(numericPredicate - 1);
 						}
 					} else {
 						list.clear();
@@ -212,11 +212,11 @@ public class DataObjectImpl implements DataObject {
 						while (iter.hasNext()) {
 							Object next = iter.next();
 							if (next instanceof DataObject) {
-								if (checkAttribute((DataObjectImpl) next, attribute)) {
+								if (checkPredicate((DataObjectImpl) next, predicate)) {
 									list.add((DataObject) next);
 								}
 							} else {
-								throw new Exception("Could not apply that attribute to element '" + property + "' of type '" + next.getClass().getSimpleName() + "'");
+								throw new Exception("Could not apply that predicate to element '" + property + "' of type '" + next.getClass().getSimpleName() + "'");
 							}
 						}
 					}
@@ -236,59 +236,59 @@ public class DataObjectImpl implements DataObject {
 		}
 	}
 
-	private static int evaluateNumericAttribute(Attribute attribute) throws Exception {
+	private static int evaluateNumericPredicate(Predicate predicate) throws Exception {
 		// check the case in which there's a variable instead of a String or a Double
-		if (attribute.getVar() != null) {
-			Object num = Main.getVariable(attribute.getVar());
+		if (predicate.getVar() != null) {
+			Object num = WSCoL.getVariable(predicate.getVar());
 			if (num instanceof Double) {
 				return (int) (double) num;
 			} else if (num == null) {
-				throw new Exception("The variable '" + attribute.getVar() + "' is not defined.");
+				throw new Exception("The variable '" + predicate.getVar() + "' is not defined.");
 			} else {
-				throw new Exception("The variable '" + attribute.getVar() + "' it's not of a numeric type (Value: " + num + ". Class: " + num.getClass().getSimpleName() + ").");
+				throw new Exception("The variable '" + predicate.getVar() + "' it's not of a numeric type (Value: " + num + ". Class: " + num.getClass().getSimpleName() + ").");
 			}
 		} else {
-			return (int) attribute.getNumber();
+			return (int) predicate.getNumber();
 		}
 	}
 
 	/**
-	 * Evaluate the attributes on a passed {@link DataObject}
+	 * Evaluate the predicates on a passed {@link DataObject}
 	 * 
 	 * @param current
-	 *            {@link DataObject} on which the attribute is verified
-	 * @param attribute
-	 *            {@link Attribute} to check
-	 * @return {@link DataObject} selected from 'current' with the corresponding attribute, <code>null</code> if the attribute is not respected
+	 *            {@link DataObject} on which the predicate is verified
+	 * @param predicate
+	 *            {@link Predicate} to check
+	 * @return {@link DataObject} selected from 'current' with the corresponding predicate, <code>null</code> if the predicate is not respected
 	 * @throws Exception
 	 *             if the searched property is not found
 	 */
-	private static boolean checkAttribute(DataObjectImpl current, Attribute attribute) throws Exception {
-		String key = attribute.getProperty();
-		String strValue = attribute.getStrValue();
-		String op = attribute.getOp();
-		double numericValue = attribute.getNumberValue();
+	private static boolean checkPredicate(DataObjectImpl current, Predicate predicate) throws Exception {
+		String key = predicate.getProperty();
+		String strValue = predicate.getStrValue();
+		String op = predicate.getOp();
+		double numericValue = predicate.getNumberValue();
 
 		if (current.containsKey(key)) {
-			if (op != null) { // check if it's a complete attribute (eg. /book[title="..."]), other types of attribute (by i-th selection and by varible are already checked)
+			if (op != null) { // check if it's a complete predicate (eg. /book[title="..."]), other types of predicate (by i-th selection and by varible are already checked)
 
 				// check if the comparison is done with a variable; if necessary retrieve the value
-				if (attribute.getVarValue() != null) {
-					Object value = Main.getVariable(attribute.getVarValue());
+				if (predicate.getVarValue() != null) {
+					Object value = WSCoL.getVariable(predicate.getVarValue());
 					if (value != null) {
 						if (value instanceof String) {
 							strValue = (String) value;
 						} else if (value instanceof Double) {
 							numericValue = (double) value;
 						} else {
-							throw new Exception("The variable '" + attribute.getVarValue() + "' contains a DataObject, unacceptable in attributes.");
+							throw new Exception("The variable '" + predicate.getVarValue() + "' contains a DataObject, unacceptable in predicates.");
 						}
 					} else {
-						throw new Exception("The variable '" + attribute.getVarValue() + "' is not defined.");
+						throw new Exception("The variable '" + predicate.getVarValue() + "' is not defined.");
 					}
 				}
 
-				if (strValue != null) { // check if it's a string attribute
+				if (strValue != null) { // check if it's a string predicate
 					if (op.equals("==") && current.containsEntry(key, strValue)) {
 						return true;
 					} else if (op.equals("!=") && !current.containsEntry(key, strValue)) {

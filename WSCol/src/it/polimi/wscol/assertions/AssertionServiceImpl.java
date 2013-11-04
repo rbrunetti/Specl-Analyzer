@@ -1,6 +1,6 @@
 package it.polimi.wscol.assertions;
 
-import it.polimi.wscol.Main;
+import it.polimi.wscol.WSCoL;
 import it.polimi.wscol.Helpers.FunctionHelper;
 import it.polimi.wscol.Helpers.StringHelper;
 import it.polimi.wscol.dataobject.DataObject;
@@ -348,6 +348,10 @@ public class AssertionServiceImpl implements AssertionService {
 			} catch (Exception e) {
 				throw new Exception(e.getMessage() + assertionRepr);
 			}
+		} else if(assertion.getValues() != null) {
+			result = StringHelper.valuesToList(assertion.getValues());
+		} else {
+			result = assertion.isBoolean();
 		}
 
 		// functions evaluation, according to the corresponding type
@@ -366,7 +370,7 @@ public class AssertionServiceImpl implements AssertionService {
 		String placeholder = steps.get(0).getPlaceholder();
 
 		if (placeholder != null) {
-			Object value = Main.getVariable(placeholder);
+			Object value = WSCoL.getVariable(placeholder);
 			if (value == null) {
 				throw new Exception("Variable '" + placeholder + "' is not defined");
 			}
@@ -393,7 +397,7 @@ public class AssertionServiceImpl implements AssertionService {
 				result = value;
 			}
 		} else {
-			result = Main.getInput().evaluate(steps);
+			result = WSCoL.getInput().evaluate(steps);
 		}
 		return result;
 	}
@@ -418,7 +422,7 @@ public class AssertionServiceImpl implements AssertionService {
 		AssertionQuantified aq = (AssertionQuantified) assertion;
 		String assertionRepr = "[token: '" + StringHelper.assertionQuantifiedToString(aq) + "']";
 
-		Object variable = Main.getVariable(aq.getVar());
+		Object variable = WSCoL.getVariable(aq.getVar());
 		if (variable == null) {
 			throw new Exception("The variable '" + aq.getVar() + "' is not defined. " + assertionRepr);
 		}
@@ -436,7 +440,7 @@ public class AssertionServiceImpl implements AssertionService {
 		boolean result;
 		double count, sum;
 
-		if (Main.getVariable(alias) != null) {
+		if (WSCoL.getVariable(alias) != null) {
 			throw new Exception("The variable '" + alias + "' is already used. Choose another. " + assertionRepr);
 		}
 
@@ -445,10 +449,10 @@ public class AssertionServiceImpl implements AssertionService {
 		switch (aq.getQuantifier()) {
 		case "forall":
 			while (iter.hasNext()) {
-				Main.putVariable(alias, iter.next());
+				WSCoL.putVariable(alias, iter.next());
 				result = verifyAssertions(aq.getConditions());
 				if (!result) {
-					Main.removeVariable(alias);
+					WSCoL.removeVariable(alias);
 					return false;
 				}
 			}
@@ -456,20 +460,20 @@ public class AssertionServiceImpl implements AssertionService {
 		case "exists":
 			result = false;
 			while (iter.hasNext()) {
-				Main.putVariable(alias, iter.next());
+				WSCoL.putVariable(alias, iter.next());
 				result = result | verifyAssertions(aq.getConditions());
 			}
-			Main.removeVariable(alias);
+			WSCoL.removeVariable(alias);
 			return result;
 		case "numOf":
 			count = 0;
 			while (iter.hasNext()) {
-				Main.putVariable(alias, iter.next());
+				WSCoL.putVariable(alias, iter.next());
 				if (verifyAssertions(aq.getConditions())) {
 					count = count + 1;
 				}
 			}
-			Main.removeVariable(alias);
+			WSCoL.removeVariable(alias);
 			return count;
 		case "sum":
 			sum = 0;
@@ -478,12 +482,12 @@ public class AssertionServiceImpl implements AssertionService {
 				if (!(next instanceof Double)) {
 					throw new Exception("The variable '" + aq.getVar() + "' contains an element of class '" + next.getClass().getSimpleName() + "'. Only Doubles are accepted by '" + aq.getQuantifier() + "' function " + assertionRepr);
 				}
-				Main.putVariable(alias, next);
+				WSCoL.putVariable(alias, next);
 				if (verifyAssertions(aq.getConditions())) {
 					sum += (double) next;
 				}
 			}
-			Main.removeVariable(alias);
+			WSCoL.removeVariable(alias);
 			return sum;
 		case "avg":
 			sum = 0;
@@ -493,13 +497,13 @@ public class AssertionServiceImpl implements AssertionService {
 				if (!(next instanceof Double)) {
 					throw new Exception("The variable '" + aq.getVar() + "' contains an element of class '" + next.getClass().getSimpleName() + "'. Only Doubles are accepted by '" + aq.getQuantifier() + "' function " + assertionRepr);
 				}
-				Main.putVariable(alias, next);
+				WSCoL.putVariable(alias, next);
 				if (verifyAssertions(aq.getConditions())) {
 					sum += (double) next;
 					count += 1;
 				}
 			}
-			Main.removeVariable(alias);
+			WSCoL.removeVariable(alias);
 			return sum / count;
 		case "product":
 			double product = 1;
@@ -508,12 +512,12 @@ public class AssertionServiceImpl implements AssertionService {
 				if (!(next instanceof Double)) {
 					throw new Exception("The variable '" + aq.getVar() + "' contains an element of class '" + next.getClass().getSimpleName() + "'. Only Doubles are accepted by '" + aq.getQuantifier() + "' function " + assertionRepr);
 				}
-				Main.putVariable(alias, next);
+				WSCoL.putVariable(alias, next);
 				if (verifyAssertions(aq.getConditions())) {
 					product *= (double) next;
 				}
 			}
-			Main.removeVariable(alias);
+			WSCoL.removeVariable(alias);
 			return product;
 		case "max":
 			double max = Double.NEGATIVE_INFINITY;
@@ -522,14 +526,14 @@ public class AssertionServiceImpl implements AssertionService {
 				if (!(next instanceof Double)) {
 					throw new Exception("The variable '" + aq.getVar() + "' contains an element of class '" + next.getClass().getSimpleName() + "'. Only Doubles are accepted by '" + aq.getQuantifier() + "' function " + assertionRepr);
 				}
-				Main.putVariable(alias, next);
+				WSCoL.putVariable(alias, next);
 				if (verifyAssertions(aq.getConditions())) {
 					if ((double) next > max) {
 						max = (double) next;
 					}
 				}
 			}
-			Main.removeVariable(alias);
+			WSCoL.removeVariable(alias);
 			return max;
 		case "min":
 			double min = Double.POSITIVE_INFINITY;
@@ -538,14 +542,14 @@ public class AssertionServiceImpl implements AssertionService {
 				if (!(next instanceof Double)) {
 					throw new Exception("The variable '" + aq.getVar() + "' contains an element of class '" + next.getClass().getSimpleName() + "'. Only Doubles are accepted by '" + aq.getQuantifier() + "' function " + assertionRepr);
 				}
-				Main.putVariable(alias, next);
+				WSCoL.putVariable(alias, next);
 				if (verifyAssertions(aq.getConditions())) {
 					if ((double) next < min) {
 						min = (double) next;
 					}
 				}
 			}
-			Main.removeVariable(alias);
+			WSCoL.removeVariable(alias);
 			return min;
 		default:
 			return null; // never reached: other cases are blocked by the grammar parser as errors

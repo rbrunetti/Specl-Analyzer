@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -37,6 +38,8 @@ public class WSCoL {
 	
 	@Inject
 	private Provider<ResourceSet> resourceSetProvider;
+
+	private static Logger logger = Logger.getLogger(WSCoL.class);;
 	
 	private static String wscolFilePath;
 	private static String inputFilePath;
@@ -46,17 +49,41 @@ public class WSCoL {
 	private static AssertionService assertionService;
 	private static DeclarationService declarationService;
 	
+	public static void main(String[] args) {
+		new WSCoL().evaluate(args);
+	}
+	
+	public boolean evaluate(String[] args) {
+		Injector injector = new it.polimi.wscol.WSColStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
+		WSCoL main = injector.getInstance(WSCoL.class);
+		
+		variablesSetUp(args);
+		
+		File f = new File(wscolFilePath);
+		String string = f.toURI().toString();
+
+		return main.runGenerator(string);
+	}
 	
 	private static void variablesSetUp(String[] args){
+		
 		if(args.length != 3) {
-			System.err.println("WSCol Usage: wscol [wscol assertions file] [-json|-xml] [input file]\n'-json' and '-xml' for type of input type.");
-			System.err.println("Examples:\n wscol rules.wscol -xml input.xml\n");
+			logger.error("WSCol Usage: wscol [wscol assertions file] [-json|-xml] [input file]\n'-json' and '-xml' for type of input type.");
+			logger.error("Examples:\n wscol rules.wscol -xml input.xml\n");
 			System.exit(0);
+		}
+		
+		if(logger.isInfoEnabled()){
+			logger.info("*** WSCoL Analyzer ***");
 		}
 		
 		wscolFilePath = args[0];
 		boolean isJson = (args[1].equals("-json") ? true : false);
 		inputFilePath = args[2];
+		
+		if(logger.isInfoEnabled()){
+			logger.info("Readed " + args[0] + " and " + args[2]);
+		}
 		
 		assertionService = new AssertionServiceImpl();
 		declarationService = new DeclarationServiceImpl();
@@ -66,28 +93,14 @@ public class WSCoL {
 		
 	}
 	
-	public static void main(String[] args) {
-		Injector injector = new it.polimi.wscol.WSColStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
-		WSCoL main = injector.getInstance(WSCoL.class);
-		
-		variablesSetUp(args);
-		
-		File f = new File(wscolFilePath);
-		String string = f.toURI().toString();
-
-		main.runGenerator(string);
-		
-		
-	}
-	
-	protected void runGenerator(String string) {
+	protected boolean runGenerator(String string) {
 		// load the resource and parse it
 		ResourceSet set = resourceSetProvider.get();
 		Resource resource = set.getResource(URI.createURI(string), true);
 
 		// check for syntax errors
 		if (syntaxErrors(resource)) {
-			return;
+			System.exit(0);
 		}
 
 		// get contents
@@ -95,30 +108,37 @@ public class WSCoL {
 		EObjectContainmentEList<Declaration> declarations = (EObjectContainmentEList<Declaration>) model.getDeclarations();
 		Assertions assertionSet = model.getAssertionSet();
 
-		// print out the DataObject conversion of the XML file
-		System.out.println("################## INPUT ###################\n" + input + "\n");
-
-		System.out.println("################## RULES ###################");
-		System.out.println(declarations.size() + " variable declarated.");
-//		System.out.println("??? assertions has been found.\n"); //TODO conteggio eliminato
+		if(logger.isInfoEnabled()){
+			// print out the DataObject conversion of the XML file
+			logger.info("INPUT: " + input);
+	
+			logger.info(declarations.size() + " declarations");
+			logger.info("? assertions"); //TODO
+		}
 
 		// get variables declaration and sets the hashmap
 		try {
 			declarationService.setVariable(declarations);
 		} catch (Exception e) {
-			System.err.println("\n**** RUNTIME ERRORS ****\n" + e.getMessage());
+			logger.error(e.getMessage());
 			System.exit(0);
 		}
 
 		// verify the assertions
-		System.out.println("\n################ ASSERTIONS ################");
+		boolean result = false;
 		try {
-			System.out.println("\nRESULT: " + assertionService.verifyAssertions(assertionSet));
+			if(logger.isInfoEnabled()){
+				logger.info("ASSERTION EVALUATION");
+			}
+			result = assertionService.verifyAssertions(assertionSet);
+			if(logger.isInfoEnabled()){
+				logger.info("RESULT: " + result);
+			}
 		} catch (Exception e) {
-			System.err.println("\n**** RUNTIME ERRORS ****\n" + e.getMessage());
+			logger.error(e.getMessage());
 			System.exit(0);
 		}
-
+		return result;
 	}
 
 	/**
@@ -138,7 +158,7 @@ public class WSCoL {
 			return false;
 		}
 
-		System.err.println("**** MALFORMED ASSERTIONS ****\n*** " + number + " syntax errors found ***\n");
+		logger.error("SYNTAX ERRORS: " + number + " found");
 
 		INode errorNode = null;
 		while (iter.hasNext()) {
@@ -176,10 +196,11 @@ public class WSCoL {
 					}
 				}
 			}
-//			System.err.println("ERROR: " + errm.getMessage() + " - line: " + sl + " - token: '" + erroneousToken + "'");
+			
+			logger.error("MSG: " + errm.getMessage() + " - LINE: " + sl + " - TOKEN: '" + erroneousToken + "'");
 
 			// "table-formatted" output
-			 System.err.printf("%-50s - %-8s - %-60s %n", "ERROR: " + errm.getMessage(), "line: " + sl, "token: " + erroneousToken);
+			// System.err.printf("%-50s - %-8s - %-60s %n", "ERROR: " + errm.getMessage(), "LINE: " + sl, "TOKEN: " + erroneousToken);
 		}
 		return true;
 	}

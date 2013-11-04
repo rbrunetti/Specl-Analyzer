@@ -5,6 +5,7 @@ import it.polimi.wscol.Helpers.FunctionHelper;
 import it.polimi.wscol.Helpers.StringHelper;
 import it.polimi.wscol.dataobject.DataObject;
 import it.polimi.wscol.dataobject.DataObjectImpl;
+import it.polimi.wscol.declaration.DeclarationServiceImpl;
 import it.polimi.wscol.services.WSColGrammarAccess.AssertionQuantifiedBooleanElements;
 import it.polimi.wscol.services.WSColGrammarAccess.AssertionQuantifiedNumericElements;
 import it.polimi.wscol.wscol.Assertion;
@@ -21,10 +22,13 @@ import it.polimi.wscol.wscol.Step;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 
 public class AssertionServiceImpl implements AssertionService {
+	
+	private static Logger logger = Logger.getLogger(DeclarationServiceImpl.class);
 	
 	/**
 	 * Method for the evaluation of the {@link Assertions}, considering the operation (NOT, AND, OR) and the corresponding priority (NOT>AND>OR)
@@ -43,11 +47,15 @@ public class AssertionServiceImpl implements AssertionService {
 			return (verifyAssertions((Assertions) a.get(0)) | verifyAssertions((Assertions) a.get(1)));
 		} else if (assertions instanceof AssertionNot) {
 			boolean res = !verifyAssertions(((AssertionNot) assertions).getInnerFormula());
-			System.out.println("Assertion '" + StringHelper.assertionsToString(assertions) + "' is " + ((res) ? "verified." : "wrong."));
+			if(logger.isInfoEnabled()){
+				logger.info("Assertion '" + StringHelper.assertionsToString(assertions) + "' is " + ((res) ? "verified." : "wrong."));
+			}
 			return res;
 		} else if (assertions instanceof AssertionBraced) {
 			boolean res = verifyAssertions(((AssertionBraced) assertions).getInnerFormula());
-			System.out.println("Assertion '" + StringHelper.assertionsToString(assertions) + "' is " + ((res) ? "verified." : "wrong."));
+			if(logger.isInfoEnabled()){
+				logger.info("Assertion '" + StringHelper.assertionsToString(assertions) + "' is " + ((res) ? "verified." : "wrong."));
+			}
 			return res;
 		} else if (assertions instanceof AssertionForm) {
 			return verifyAssertionForm((AssertionForm) assertions);
@@ -97,9 +105,10 @@ public class AssertionServiceImpl implements AssertionService {
 		} else if (laObj instanceof Boolean && raObj instanceof Boolean) {
 			return booleanAssertion((boolean) laObj, (boolean) raObj, operation, assertionRepr);
 		} else if (laObj != null && raObj != null) {
-			String msg = "Assertion could not be evaluated due to data types conflicts [token: '" + assertionRepr + "']";
-			msg += "\n Left assertion [token: '" + leftToken + "'] = " + laObj + " (Class: " + laObj.getClass().getSimpleName() + ")";
-			msg += "\n Right assertion [token: '" + rightToken + "'] = " + raObj + " (Class: " + raObj.getClass().getSimpleName() + ")";
+			String msg = "Assertion could not be evaluated due to data types conflicts [token: '" + assertionRepr + "']\n";
+			// just push the string 10 characters to the right
+			msg += String.format("%10s %s", " ", "Left assertion [token: '" + leftToken + "'] = " + laObj + " (Class: " + laObj.getClass().getSimpleName() + ")\n");
+			msg += String.format("%10s %s", " ", "Right assertion [token: '" + rightToken + "'] = " + raObj + " (Class: " + raObj.getClass().getSimpleName() + ")");
 			throw new Exception(msg);
 		} else {
 			throw new Exception("Unable to evaluate the assertion, due to erroneous variables declaration [token: '" + assertionRepr + "']");
@@ -168,15 +177,19 @@ public class AssertionServiceImpl implements AssertionService {
 			break;
 		default:
 			String msg = "Unsopported operation '" + operation + "' for the assertion between two String [token: '" + condition + "']";
-			msg += "\n Left assertion = '" + left + "' ";
-			msg += "\n Right assertion = '" + right + "' ";
+			msg += String.format("%10s %s", " ", "Left assertion = '" + left + "' ");
+			msg += String.format("%10s %s", " ", "Right assertion = '" + right + "' ");
 			throw new Exception(msg);
 		}
 
 		if (result) {
-			System.out.println("Assertion '" + condition + "' is verified.");
+			if(logger.isInfoEnabled()){
+				logger.info("Assertion '" + condition + "' is verified.");
+			}
 		} else {
-			System.out.println("Assertion '" + condition + "' is wrong.");
+			if(logger.isInfoEnabled()){
+				logger.info("Assertion '" + condition + "' is wrong.");
+			}
 		}
 
 		return result;
@@ -216,15 +229,19 @@ public class AssertionServiceImpl implements AssertionService {
 			break;
 		default:
 			String msg = "Unsopported operation '" + operation + "' for the assertion between two String [token: '" + condition + "']";
-			msg += "\n Left assertion = '" + left + "' ";
-			msg += "\n Right assertion = '" + right + "' ";
+			msg += String.format("%10d", "\n Left assertion = '" + left + "' ");
+			msg += String.format("%10d", "\n Right assertion = '" + right + "' ");
 			throw new Exception(msg);
 		}
 
 		if (result) {
-			System.out.println("Assertion '" + condition + "' is verified.");
+			if(logger.isInfoEnabled()){
+				logger.info("Assertion '" + condition + "' is verified.");
+			}
 		} else {
-			System.out.println("Assertion '" + condition + "' is wrong.");
+			if(logger.isInfoEnabled()){
+				logger.info("Assertion '" + condition + "' is wrong.");
+			}
 		}
 
 		return result;
@@ -256,15 +273,19 @@ public class AssertionServiceImpl implements AssertionService {
 			break;
 		default:
 			String msg = "Unsopported operation '" + operation + "' for the assertion between two Boolean [token: '" + condition + "']";
-			msg += "\n Left assertion = '" + left + "' ";
-			msg += "\n Right assertion = '" + right + "' ";
+			msg += String.format("%10s %s", " ", "Left assertion = '" + left + "' ");
+			msg += String.format("%10s %s", " ", "Right assertion = '" + right + "' ");
 			throw new Exception(msg);
 		}
 
 		if (result) {
-			System.out.println("Assertion '" + condition + "' is verified.");
+			if(logger.isInfoEnabled()){
+				logger.info("Assertion '" + condition + "' is verified.");
+			}
 		} else {
-			System.out.println("Assertion '" + condition + "' is wrong.");
+			if(logger.isInfoEnabled()){
+				logger.info("Assertion '" + condition + "' is wrong.");
+			}
 		}
 
 		return result;
@@ -304,15 +325,19 @@ public class AssertionServiceImpl implements AssertionService {
 			break;
 		default:
 			String msg = "Unsopported operation '" + operation + "' for the assertion between two DataObject [token: '" + condition + "']";
-			msg += "\n Left assertion = '" + left + "' ";
-			msg += "\n Right assertion = '" + right + "' ";
+			msg += String.format("%10s %s", " ", "Left assertion = '" + left + "' ");
+			msg += String.format("%10s %s", " ", "Right assertion = '" + right + "' ");
 			throw new Exception(msg);
 		}
 
 		if (result) {
-			System.out.println("Assertion '" + condition + "' is verified.");
+			if(logger.isInfoEnabled()){
+				logger.info("Assertion '" + condition + "' is verified.");
+			}
 		} else {
-			System.out.println("Assertion '" + condition + "' is wrong.");
+			if(logger.isInfoEnabled()){
+				logger.info("Assertion '" + condition + "' is wrong.");
+			}
 		}
 
 		return result;

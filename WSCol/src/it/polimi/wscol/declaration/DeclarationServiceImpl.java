@@ -13,11 +13,14 @@ import it.polimi.wscol.wscol.Value;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 
 public class DeclarationServiceImpl implements DeclarationService{
 
 	private AssertionService as;
+	
+	private static Logger logger = Logger.getLogger(DeclarationServiceImpl.class);
 	
 	public DeclarationServiceImpl(){
 		as = new AssertionServiceImpl();
@@ -40,7 +43,11 @@ public class DeclarationServiceImpl implements DeclarationService{
 	@Override
 	public void setVariable(EObjectContainmentEList<Declaration> declarations) throws Exception {
 		Object result = null;
-		System.out.println("############### DECLARATIONS ###############");
+		
+		if(logger.isInfoEnabled()){
+			logger.info("DECLARATION EVALUATION");
+		}
+		
 		for (Declaration d : declarations) {
 			String assertionRep = StringHelper.declarationToString(d);
 			if (WSCoL.getVariable(d.getVar()) != null) {
@@ -88,7 +95,10 @@ public class DeclarationServiceImpl implements DeclarationService{
 			}
 
 			WSCoL.putVariable(d.getVar(), result);
-			System.out.println(StringHelper.declarationToString(d));
+			
+			if(logger.isInfoEnabled()){
+				logger.info(StringHelper.declarationToString(d));
+			}
 		}
 		return;
 	}

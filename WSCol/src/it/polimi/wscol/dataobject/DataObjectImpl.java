@@ -18,6 +18,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -38,6 +39,8 @@ public class DataObjectImpl implements DataObject {
 	 * {@link LinkedHashMultimap} containing the data
 	 */
 	private LinkedHashMultimap<String, Object> data;
+	
+	private static Logger logger = Logger.getLogger(DataObjectImpl.class);
 
 	// ************************
 	// ***** CONSTRUCTORS *****
@@ -170,14 +173,14 @@ public class DataObjectImpl implements DataObject {
 				Object subMap = getSubmap(obj, property, predicate);
 				if (subMap instanceof ArrayList) {
 					for (Object elem : (ArrayList<Object>) subMap) {
-						if (!list.contains(elem)) {
+//						if (!list.contains(elem)) {
 							list.add(elem);
-						}
+//						}
 					}
 				} else {
-					if (!list.contains(subMap)) {
+//					if (!list.contains(subMap)) {
 						list.add(subMap);
-					}
+//					}
 				}
 			}
 
@@ -592,7 +595,7 @@ public class DataObjectImpl implements DataObject {
 			// String sv = son.getNodeValue();
 			String st = son.getTextContent().trim();
 			if (son.getChildNodes().getLength() == 0 || (son.getChildNodes().getLength() == 1 && son.getFirstChild() instanceof Text)) {
-				if (!st.equals("")) { // TODO valuta!
+				if (!st.equals("")) {
 					try {
 						double num = Double.parseDouble(st);
 						sons.put(sn, num);

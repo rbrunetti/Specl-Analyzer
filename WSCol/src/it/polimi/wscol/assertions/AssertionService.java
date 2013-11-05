@@ -6,6 +6,7 @@ import it.polimi.wscol.services.WSColGrammarAccess.AssertionQuantifiedNumericEle
 import it.polimi.wscol.wscol.Assertion;
 import it.polimi.wscol.wscol.AssertionQuantified;
 import it.polimi.wscol.wscol.Assertions;
+import it.polimi.wscol.wscol.Expression;
 import it.polimi.wscol.wscol.Step;
 
 import org.eclipse.emf.common.util.EList;
@@ -28,6 +29,14 @@ public interface AssertionService {
 	 * @throws Exception if some errors are find during the evaluation
 	 */
 	public Object resolveQuery(EList<Step> steps) throws Exception;
+	
+	/**
+	 * Resolves numeric expression, containing numbers or navigation query (that will be resolved)
+	 * @param assertion the {@link Expression} to resolve
+	 * @return the result of the {@link Expression}
+	 * @throws Exception if the arguments of the {@link Expression} is not numeric
+	 */
+	public double resolveExpression(Assertion assertion) throws Exception;
 	
 	/**
 	 * Returns the result of an {@link AssertionQuantified}. {@link AssertionQuantified} are of two types: {@link AssertionQuantifiedNumericElements} if the result is of type {@link Double} and {@link AssertionQuantifiedBooleanElements} if the result is of type {@link Boolean}

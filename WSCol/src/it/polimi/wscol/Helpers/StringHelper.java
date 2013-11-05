@@ -9,6 +9,7 @@ import it.polimi.wscol.wscol.AssertionOr;
 import it.polimi.wscol.wscol.AssertionQuantified;
 import it.polimi.wscol.wscol.AssertionStdCmp;
 import it.polimi.wscol.wscol.Assertions;
+import it.polimi.wscol.wscol.Expression;
 import it.polimi.wscol.wscol.Predicate;
 import it.polimi.wscol.wscol.Constant;
 import it.polimi.wscol.wscol.Declaration;
@@ -21,6 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.emf.common.util.EList;
+import it.polimi.wscol.wscol.Div;
+import it.polimi.wscol.wscol.Minus;
+import it.polimi.wscol.wscol.Multi;
+import it.polimi.wscol.wscol.Plus;
+import it.polimi.wscol.wscol.Rest;
 
 public class StringHelper {
 	/**
@@ -95,18 +101,70 @@ public class StringHelper {
 			res = assertionQuantifiedToString((AssertionQuantified) a);
 		} else if (!a.getSteps().isEmpty()) {
 			res = queryToString(a.getSteps());
-		} else if (a.getConstant() != null) {
-			if (a.getConstant().getString() == null) {
-				res = String.valueOf(a.getConstant().getNumber());
-			} else {
-				res = a.getConstant().getString();
-			}
+		} else if (a instanceof Constant) {
+			res = constantToString((Constant) a);
 		} else if (a.getValues() != null) {
 			res = valuesToList(a.getValues()).toString();
+		} else if (a instanceof Expression) {
+			res = expressionToString(a);
 		} else {
 			res = String.valueOf(a.isBoolean());
 		}
 		res += functionsToString(a.getFunctions());
+		return res;
+	}
+	
+	/**
+	 * Generate the {@link String} representation of an {@link Expression}.
+	 * The method check and add eventual brackets.
+	 * 
+	 * @param exp the {@link Expression} to represent
+	 * @return the {@link String} representing the passed {@link Expression}
+	 */
+	private static String expressionToString(Assertion exp) {
+		String res = "";
+		if(exp instanceof Plus) {
+			res = expressionToString(((Plus) exp).getLeft()) + " + " + expressionToString(((Plus) exp).getRight());
+		} else if(exp instanceof Minus) {
+			res = expressionToString(((Minus) exp).getLeft()) + " - " + expressionToString(((Minus) exp).getRight());
+		} else if(exp instanceof Multi) {
+			if(((Multi) exp).getLeft() instanceof Plus || ((Multi) exp).getLeft() instanceof Minus) {
+				res = "( " + expressionToString(((Multi) exp).getLeft()) + " ) * ";
+			} else {
+				res = expressionToString(((Multi) exp).getLeft()) + " * ";
+			}
+			if (((Multi) exp).getRight() instanceof Plus || ((Multi) exp).getRight() instanceof Minus){
+				res += "( " + expressionToString(((Multi) exp).getRight()) + " )";
+			} else {
+				 res += expressionToString(((Multi) exp).getRight());
+			}
+		} else if(exp instanceof Div) {
+			if(((Div) exp).getLeft() instanceof Plus || ((Div) exp).getLeft() instanceof Minus){
+				res = "( " + expressionToString(((Div) exp).getLeft()) + " ) / ";
+			} else {
+				res = expressionToString(((Div) exp).getLeft()) + " / ";
+			}
+			if (((Div) exp).getRight() instanceof Plus || ((Div) exp).getRight() instanceof Minus ){
+				res += "( " + expressionToString(((Div) exp).getRight()) + " )";
+			} else {
+				 res += expressionToString(((Div) exp).getRight());
+			}
+		} else if(exp instanceof Rest) {
+			if (((Rest) exp).getLeft() instanceof Plus || ((Rest) exp).getLeft() instanceof Minus) {
+				res = "( " + expressionToString(((Rest) exp).getLeft()) + " ) % ";
+			} else {
+				res = expressionToString(((Rest) exp).getLeft()) + " % ";
+			}
+			if (((Rest) exp).getRight() instanceof Plus || ((Rest) exp).getRight() instanceof Minus){
+				res += "( " + expressionToString(((Rest) exp).getRight()) + " )";
+			} else {
+				res +=  expressionToString(((Rest) exp).getRight());
+			}
+		} else if(exp instanceof Constant) {
+			return constantToString((Constant) exp);
+		} else if(!exp.getSteps().isEmpty()) {
+			return assertionToString(exp);
+		}
 		return res;
 	}
 	

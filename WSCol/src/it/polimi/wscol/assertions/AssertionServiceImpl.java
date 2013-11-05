@@ -17,6 +17,8 @@ import it.polimi.wscol.wscol.AssertionOr;
 import it.polimi.wscol.wscol.AssertionQuantified;
 import it.polimi.wscol.wscol.AssertionStdCmp;
 import it.polimi.wscol.wscol.Assertions;
+import it.polimi.wscol.wscol.Constant;
+import it.polimi.wscol.wscol.Expression;
 import it.polimi.wscol.wscol.Step;
 
 import java.util.ArrayList;
@@ -25,6 +27,12 @@ import java.util.Iterator;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
+
+import it.polimi.wscol.wscol.Div;
+import it.polimi.wscol.wscol.Minus;
+import it.polimi.wscol.wscol.Multi;
+import it.polimi.wscol.wscol.Plus;
+import it.polimi.wscol.wscol.Rest;
 
 public class AssertionServiceImpl implements AssertionService {
 	
@@ -39,6 +47,7 @@ public class AssertionServiceImpl implements AssertionService {
 	 * @throws Exception
 	 *             if there are exception (caused by runtime errors) from the single {@link Assertions}
 	 */
+	@Override
 	public boolean verifyAssertions(Assertions assertions) throws Exception {
 		EList<EObject> a = assertions.eContents();
 		if (assertions instanceof AssertionAnd) {
@@ -108,7 +117,7 @@ public class AssertionServiceImpl implements AssertionService {
 			String msg = "Assertion could not be evaluated due to data types conflicts [token: '" + assertionRepr + "']\n";
 			// just push the string 10 characters to the right
 			msg += String.format("%10s %s", " ", "Left assertion [token: '" + leftToken + "'] = " + laObj + " (Class: " + laObj.getClass().getSimpleName() + ")\n");
-			msg += String.format("%10s %s", " ", "Right assertion [token: '" + rightToken + "'] = " + raObj + " (Class: " + raObj.getClass().getSimpleName() + ")");
+			msg += String.format("%10s %s", " ", "Right assertion [token: '" + rightToken + "'] = " + raObj + " (Class: " + raObj.getClass().getSimpleName() + ")\n");
 			throw new Exception(msg);
 		} else {
 			throw new Exception("Unable to evaluate the assertion, due to erroneous variables declaration [token: '" + assertionRepr + "']");
@@ -176,9 +185,9 @@ public class AssertionServiceImpl implements AssertionService {
 			}
 			break;
 		default:
-			String msg = "Unsopported operation '" + operation + "' for the assertion between two String [token: '" + condition + "']";
-			msg += String.format("%10s %s", " ", "Left assertion = '" + left + "' ");
-			msg += String.format("%10s %s", " ", "Right assertion = '" + right + "' ");
+			String msg = "Unsopported operation '" + operation + "' for the assertion between two String [token: '" + condition + "']\n";
+			msg += String.format("%10s %s", " ", "Left assertion = '" + left + "'\n");
+			msg += String.format("%10s %s", " ", "Right assertion = '" + right + "'\n");
 			throw new Exception(msg);
 		}
 
@@ -228,9 +237,9 @@ public class AssertionServiceImpl implements AssertionService {
 			}
 			break;
 		default:
-			String msg = "Unsopported operation '" + operation + "' for the assertion between two String [token: '" + condition + "']";
-			msg += String.format("%10d", "\n Left assertion = '" + left + "' ");
-			msg += String.format("%10d", "\n Right assertion = '" + right + "' ");
+			String msg = "Unsopported operation '" + operation + "' for the assertion between two String [token: '" + condition + "']\n";
+			msg += String.format("%10d", "\n Left assertion = '" + left + "'\n");
+			msg += String.format("%10d", "\n Right assertion = '" + right + "'\n");
 			throw new Exception(msg);
 		}
 
@@ -272,9 +281,9 @@ public class AssertionServiceImpl implements AssertionService {
 			result = left != right;
 			break;
 		default:
-			String msg = "Unsopported operation '" + operation + "' for the assertion between two Boolean [token: '" + condition + "']";
-			msg += String.format("%10s %s", " ", "Left assertion = '" + left + "' ");
-			msg += String.format("%10s %s", " ", "Right assertion = '" + right + "' ");
+			String msg = "Unsopported operation '" + operation + "' for the assertion between two Boolean [token: '" + condition + "']\n";
+			msg += String.format("%10s %s", " ", "Left assertion = '" + left + "'\n");
+			msg += String.format("%10s %s", " ", "Right assertion = '" + right + "'\n");
 			throw new Exception(msg);
 		}
 
@@ -324,9 +333,9 @@ public class AssertionServiceImpl implements AssertionService {
 			}
 			break;
 		default:
-			String msg = "Unsopported operation '" + operation + "' for the assertion between two DataObject [token: '" + condition + "']";
-			msg += String.format("%10s %s", " ", "Left assertion = '" + left + "' ");
-			msg += String.format("%10s %s", " ", "Right assertion = '" + right + "' ");
+			String msg = "Unsopported operation '" + operation + "' for the assertion between two DataObject [token: '" + condition + "']\n";
+			msg += String.format("%10s %s", " ", "Left assertion = '" + left + "'\n");
+			msg += String.format("%10s %s", " ", "Right assertion = '" + right + "'\n");
 			throw new Exception(msg);
 		}
 
@@ -355,19 +364,15 @@ public class AssertionServiceImpl implements AssertionService {
 	 *             if the evaluation goes wrong, the cause will be specified with a message
 	 */
 	private Object doAssertion(Assertion assertion) throws Exception {
+		Object result;
 		String assertionRepr = " [token: '" + StringHelper.assertionToString(assertion) + "']";
 		
 		if (assertion instanceof AssertionQuantified) {
 			return doAssertionQuantified(assertion);
-		}
-
-		Object result = new Object();
-		// if the assertion is a constant it's not going to be an xpath query
-		if (assertion.getConstant() != null) {
-			return ((assertion.getConstant().getString() == null) ? assertion.getConstant().getNumber() : assertion.getConstant().getString());
-		}
-		// look if there's a placeholder, if any substitute it with its values (note: the placeholder is always on the first step!)
-		if (!assertion.getSteps().isEmpty()) {
+		} else if (assertion instanceof Constant) {
+			return ((((Constant) assertion).getString() == null) ? ((Constant) assertion).getNumber() : ((Constant) assertion).getString());
+		} else 	if (!assertion.getSteps().isEmpty()) {
+			// look if there's a placeholder, if any substitute it with its values (note: the placeholder is always on the first step!)
 			try {
 				result = resolveQuery(assertion.getSteps());
 			} catch (Exception e) {
@@ -375,6 +380,12 @@ public class AssertionServiceImpl implements AssertionService {
 			}
 		} else if(assertion.getValues() != null) {
 			result = StringHelper.valuesToList(assertion.getValues());
+		} else if(assertion instanceof Expression) {
+			try {
+				result = resolveExpression(assertion);
+			} catch (Exception e) {
+				throw new Exception(e.getMessage() + assertionRepr);
+			}
 		} else {
 			result = assertion.isBoolean();
 		}
@@ -389,6 +400,7 @@ public class AssertionServiceImpl implements AssertionService {
 		return result;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public Object resolveQuery(EList<Step> steps) throws Exception {
 		Object result;
@@ -427,6 +439,34 @@ public class AssertionServiceImpl implements AssertionService {
 		return result;
 	}
 
+	@Override
+	public double resolveExpression(Assertion exp) throws Exception {
+		double result = 0;
+		if(exp instanceof Plus) {
+			result = resolveExpression(((Plus) exp).getLeft()) + resolveExpression(((Plus) exp).getRight());
+		} else if(exp instanceof Minus) {
+			result = resolveExpression(((Minus) exp).getLeft()) - resolveExpression(((Minus) exp).getRight());
+		} else if(exp instanceof Multi) {
+			result = resolveExpression(((Multi) exp).getLeft()) * resolveExpression(((Multi) exp).getRight());
+		} else if(exp instanceof Div) {
+			result = resolveExpression(((Div) exp).getLeft()) / resolveExpression(((Div) exp).getRight());
+		} else if(exp instanceof Rest) {
+			result = resolveExpression(((Rest) exp).getLeft()) % resolveExpression(((Rest) exp).getRight());
+		} else if(exp instanceof Constant) {
+			if(((Constant) exp).getString() != null){
+				throw new Exception("Could not use a String inside an expression '" + ((Constant) exp).getString() + "'");
+			}
+			return ((Constant) exp).getNumber();
+		} else if(!exp.getSteps().isEmpty()) {
+			Object query = resolveQuery(exp.getSteps());
+			if(!(query instanceof Double)){
+				throw new Exception("Could not use a '" + query.getClass().getSimpleName() + "' inside an expression (value: '" + query + "')");
+			}
+			return (double) query;
+		}
+		return result;
+	}
+
 	/**
 	 * Returns the result of an {@link AssertionQuantified}. {@link AssertionQuantified} are of two types: {@link AssertionQuantifiedNumericElements} if the result is of type {@link Double} and {@link AssertionQuantifiedBooleanElements} if the result is of type {@link Boolean}
 	 * 
@@ -442,6 +482,7 @@ public class AssertionServiceImpl implements AssertionService {
 	 * @throws Exception
 	 *             if the variable is not of the correct type regarding to the quantifier
 	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public Object doAssertionQuantified(Assertion assertion) throws Exception {
 		AssertionQuantified aq = (AssertionQuantified) assertion;

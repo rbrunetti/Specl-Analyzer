@@ -8,6 +8,7 @@ import it.polimi.wscol.assertions.AssertionServiceImpl;
 import it.polimi.wscol.wscol.AssertionQuantified;
 import it.polimi.wscol.wscol.Constant;
 import it.polimi.wscol.wscol.Declaration;
+import it.polimi.wscol.wscol.Expression;
 import it.polimi.wscol.wscol.Value;
 
 import java.util.ArrayList;
@@ -53,11 +54,12 @@ public class DeclarationServiceImpl implements DeclarationService{
 			if (WSCoL.getVariable(d.getVar()) != null) {
 				throw new Exception("The variable '" + d.getVar() + "' in '" + StringHelper.declarationToString(d) + "' is already used (" + d.getVar() + " = " + WSCoL.getVariable(d.getVar()) + "). Choose another [token: '" + assertionRep + "']");
 			}
-			if (d.getAssert().getConstant() != null) {
-				if (d.getAssert().getConstant().getString() != null) {
-					result = d.getAssert().getConstant().getString();
+			
+			if (d.getAssert() instanceof Constant) {
+				if (((Constant) d.getAssert()).getString() != null) {
+					result = ((Constant) d.getAssert()).getString();
 				} else {
-					result = d.getAssert().getConstant().getNumber();
+					result = ((Constant) d.getAssert()).getNumber();
 				}
 			} else if (d.getAssert().getValues() != null) {
 				List<Object> values = new ArrayList<Object>();
@@ -87,9 +89,10 @@ public class DeclarationServiceImpl implements DeclarationService{
 				} catch (Exception e) {
 					throw new Exception(e.getMessage() + " [token: '" + assertionRep + "']");
 				}
-
 			} else if (d.getAssert() instanceof AssertionQuantified) {
 				result = as.doAssertionQuantified(d.getAssert());
+			} else if (d.getAssert() instanceof Expression) {
+				result = as.resolveExpression(d.getAssert());
 			} else {
 				result = d.getAssert().isBoolean();
 			}

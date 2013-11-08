@@ -22,7 +22,9 @@ import it.polimi.wscol.wscol.Expression;
 import it.polimi.wscol.wscol.Step;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
@@ -83,6 +85,7 @@ public class AssertionServiceImpl implements AssertionService {
 	 * @throws Exception
 	 *             if there is a generic runtime error, specified with a proper message
 	 */
+	@SuppressWarnings("unchecked")
 	private boolean verifyAssertionForm(AssertionForm af) throws Exception {
 		Object laObj, raObj;
 		String operation;
@@ -111,6 +114,8 @@ public class AssertionServiceImpl implements AssertionService {
 			return stringAssertion((String) laObj, (String) raObj, operation, assertionRepr);
 		} else if (laObj instanceof DataObject && raObj instanceof DataObject) {
 			return dataobjectAssertion((DataObject) laObj, (DataObject) raObj, operation, assertionRepr);
+		} else if (laObj instanceof ArrayList && raObj instanceof ArrayList) {
+			return arraylistAssertion((ArrayList<Object>) laObj, (ArrayList<Object>) raObj, operation, assertionRepr);
 		} else if (laObj instanceof Boolean && raObj instanceof Boolean) {
 			return booleanAssertion((boolean) laObj, (boolean) raObj, operation, assertionRepr);
 		} else if (laObj != null && raObj != null) {
@@ -334,6 +339,65 @@ public class AssertionServiceImpl implements AssertionService {
 			break;
 		default:
 			String msg = "Unsopported operation '" + operation + "' for the assertion between two DataObject [token: '" + condition + "']\n";
+			msg += String.format("%10s %s", " ", "Left assertion = '" + left + "'\n");
+			msg += String.format("%10s %s", " ", "Right assertion = '" + right + "'\n");
+			throw new Exception(msg);
+		}
+
+		if (result) {
+			if(logger.isInfoEnabled()){
+				logger.info("Assertion '" + condition + "' is verified.");
+			}
+		} else {
+			if(logger.isInfoEnabled()){
+				logger.info("Assertion '" + condition + "' is wrong.");
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Method for the evaluation of ArrayList {@link AssertionForm}
+	 * 
+	 * @param left
+	 *            the result of the left part of the {@link AssertionForm}
+	 * @param right
+	 *            the result of the right part of the {@link AssertionForm}
+	 * @param operation
+	 *            a {@link String} containing the operation to evaluate
+	 * @param condition
+	 *            a {@link String} representation of the {@link AssertionForm}
+	 * @return <code>true</code> if the {@link AssertionForm} is verified, <code>false</code> otherwise
+	 * @throws Exception
+	 *             if the operation is not supported
+	 */
+	private boolean arraylistAssertion(ArrayList<Object> left, ArrayList<Object> right, String operation, String condition) throws Exception {
+		boolean result;
+		
+		// switch to HashSet for use the equal function and check elements (ignoring its order)
+		Set<Object> leftSet = new HashSet<Object>();
+		Set<Object> rightSet = new HashSet<Object>();
+		leftSet.addAll(left);
+		rightSet.addAll(right);
+		
+		switch (operation) {
+		case "==":
+			if (leftSet.equals(rightSet)) {
+				result = true;
+			} else {
+				result = false;
+			}
+			break;
+		case "!=":
+			if (!leftSet.equals(rightSet)) {
+				result = true;
+			} else {
+				result = false;
+			}
+			break;
+		default:
+			String msg = "Unsopported operation '" + operation + "' for the assertion between two ArrayList [token: '" + condition + "']\n";
 			msg += String.format("%10s %s", " ", "Left assertion = '" + left + "'\n");
 			msg += String.format("%10s %s", " ", "Right assertion = '" + right + "'\n");
 			throw new Exception(msg);

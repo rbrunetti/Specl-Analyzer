@@ -7,6 +7,7 @@ import it.polimi.wscol.wscol.Constant;
 import it.polimi.wscol.wscol.Function;
 import it.polimi.wscol.wscol.Value;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -115,14 +116,6 @@ public class FunctionHelper {
 			} else {
 				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
 			}
-		case "toArray":
-			if (params == null) {
-				ArrayList<Object> list = new ArrayList<Object>();
-				list.add(object);
-				return list; 
-			} else {
-				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 0)");
-			}
 		default:
 			throw new Exception("Unsupported function '" + name + "' for a " + object.getClass().getSimpleName() + " (value: \"" + object + "\")");
 		}
@@ -147,20 +140,30 @@ public class FunctionHelper {
 			} else {
 				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
 			}
-		case "length":
-			if (params == null) {
-				return (double) String.valueOf((double) object).length();
+		case "ceiling":
+			if(params == null) {
+				return Math.ceil((double) object);
 			} else {
 				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
 			}
-		case "toArray":
+		case "floor":
 			if (params == null) {
-				ArrayList<Object> list = new ArrayList<Object>();
-				list.add(object);
-				return list;
+				return Math.floor((double) object);
 			} else {
-				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 0)");
-		}
+				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
+			}
+		case "round":
+			if (params == null) {
+				return Math.round((double) object);
+			} else {
+				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
+			}
+		case "round-half-to-even":
+			if (params == null) {
+				return BigDecimal.valueOf((double) object).setScale(0, BigDecimal.ROUND_HALF_EVEN).doubleValue();
+			} else {
+				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
+			}
 		default:
 			throw new Exception("Unsupported function '" + name + "' for a " + object.getClass().getSimpleName() + " (value: \"" + object + "\")");
 		}
@@ -213,14 +216,6 @@ public class FunctionHelper {
 			} else {
 				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 0)");
 			}
-		case "toArray":
-			if (params == null) {
-				ArrayList<Object> list = new ArrayList<Object>();
-				list.add(object);
-				return list;
-			} else {
-				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 0)");
-			}
 		default:
 			throw new Exception("Unsupported function '" + name + "' for a " + object.getClass().getSimpleName() + " (value: \"" + object + "\")");
 		}
@@ -266,12 +261,6 @@ public class FunctionHelper {
 		case "cardinality":
 			if (params == null) {
 				return (double) ((ArrayList<Object>) object).size();
-			} else {
-				throw new Exception("Wrong number of parameters for function '" + function.getName() + "' (" + params.size() + " instead of 0)");
-			}
-		case "toArray":
-			if (params == null) {
-				return object; 
 			} else {
 				throw new Exception("Wrong number of parameters for function '" + function.getName() + "' (" + params.size() + " instead of 0)");
 			}

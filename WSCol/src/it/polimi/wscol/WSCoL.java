@@ -15,6 +15,7 @@ import it.polimi.wscol.wscol.Model;
 import it.polimi.wscol.wscol.Step;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;

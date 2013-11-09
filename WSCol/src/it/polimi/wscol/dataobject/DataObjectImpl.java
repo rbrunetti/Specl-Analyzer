@@ -1,6 +1,6 @@
 package it.polimi.wscol.dataobject;
 
-import it.polimi.wscol.WSCoLAnalyser;
+import it.polimi.wscol.WSCoLAnalyzer;
 import it.polimi.wscol.Helpers.VariablesHelper;
 import it.polimi.wscol.wscol.Predicate;
 import it.polimi.wscol.wscol.Step;
@@ -238,7 +238,7 @@ public class DataObjectImpl implements DataObject {
 	private static int evaluateNumericPredicate(Predicate predicate) throws Exception {
 		// check the case in which there's a variable instead of a String or a Double
 		if (predicate.getVar() != null) {
-			Object num = WSCoLAnalyser.getVariable(predicate.getVar());
+			Object num = VariablesHelper.getVariable(predicate.getVar());
 			if (num instanceof Double) {
 				return (int) (double) num;
 			} else if (num == null) {
@@ -273,7 +273,7 @@ public class DataObjectImpl implements DataObject {
 
 				// check if the comparison is done with a variable; if necessary retrieve the value
 				if (predicate.getVarValue() != null) {
-					Object value = WSCoLAnalyser.getVariable(predicate.getVarValue());
+					Object value = VariablesHelper.getVariable(predicate.getVarValue());
 					if (value != null) {
 						if (value instanceof String) {
 							strValue = (String) value;

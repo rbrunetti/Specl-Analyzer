@@ -1,11 +1,11 @@
 package it.polimi.wscol.assertions;
 
-import it.polimi.wscol.WSCoLAnalyser;
+import it.polimi.wscol.WSCoLAnalyzer;
 import it.polimi.wscol.Helpers.FunctionHelper;
 import it.polimi.wscol.Helpers.StringHelper;
+import it.polimi.wscol.Helpers.VariablesHelper;
 import it.polimi.wscol.dataobject.DataObject;
 import it.polimi.wscol.dataobject.DataObjectImpl;
-import it.polimi.wscol.declaration.DeclarationServiceImpl;
 import it.polimi.wscol.services.WSColGrammarAccess.AssertionQuantifiedBooleanElements;
 import it.polimi.wscol.services.WSColGrammarAccess.AssertionQuantifiedNumericElements;
 import it.polimi.wscol.wscol.Assertion;
@@ -18,7 +18,12 @@ import it.polimi.wscol.wscol.AssertionQuantified;
 import it.polimi.wscol.wscol.AssertionStdCmp;
 import it.polimi.wscol.wscol.Assertions;
 import it.polimi.wscol.wscol.Constant;
+import it.polimi.wscol.wscol.Div;
 import it.polimi.wscol.wscol.Expression;
+import it.polimi.wscol.wscol.Minus;
+import it.polimi.wscol.wscol.Multi;
+import it.polimi.wscol.wscol.Plus;
+import it.polimi.wscol.wscol.Rest;
 import it.polimi.wscol.wscol.Step;
 
 import java.util.ArrayList;
@@ -26,27 +31,15 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
-
-import it.polimi.wscol.wscol.Div;
-import it.polimi.wscol.wscol.Minus;
-import it.polimi.wscol.wscol.Multi;
-import it.polimi.wscol.wscol.Plus;
-import it.polimi.wscol.wscol.Rest;
 
 public class AssertionServiceImpl implements AssertionService {
 	
 	private static Logger logger = Logger.getRootLogger();
 	
-	
-	public AssertionServiceImpl() {
-//		logger.getLoggerRepository().resetConfiguration();
-//		logger.addAppender(new ConsoleAppender(new PatternLayout("%5p - %m%n")));
-	}
+	public AssertionServiceImpl() {}
 	
 	/**
 	 * Method for the evaluation of the {@link Assertions}, considering the operation (NOT, AND, OR) and the corresponding priority (NOT>AND>OR)
@@ -479,7 +472,7 @@ public class AssertionServiceImpl implements AssertionService {
 		String placeholder = steps.get(0).getPlaceholder();
 
 		if (placeholder != null) {
-			Object value = WSCoLAnalyser.getVariable(placeholder);
+			Object value = VariablesHelper.getVariable(placeholder);
 			if (value == null) {
 				throw new Exception("Variable '" + placeholder + "' is not defined");
 			}
@@ -506,7 +499,7 @@ public class AssertionServiceImpl implements AssertionService {
 				result = value;
 			}
 		} else {
-			result = WSCoLAnalyser.getInput().evaluate(steps);
+			result = WSCoLAnalyzer.getInput().evaluate(steps);
 		}
 		return result;
 	}
@@ -560,7 +553,7 @@ public class AssertionServiceImpl implements AssertionService {
 		AssertionQuantified aq = (AssertionQuantified) assertion;
 		String assertionRepr = "[token: '" + StringHelper.assertionQuantifiedToString(aq) + "']";
 
-		Object variable = WSCoLAnalyser.getVariable(aq.getVar());
+		Object variable = VariablesHelper.getVariable(aq.getVar());
 		if (variable == null) {
 			throw new Exception("The variable '" + aq.getVar() + "' is not defined. " + assertionRepr);
 		}
@@ -578,7 +571,7 @@ public class AssertionServiceImpl implements AssertionService {
 		boolean result;
 		double count, sum;
 
-		if (WSCoLAnalyser.getVariable(alias) != null) {
+		if (VariablesHelper.getVariable(alias) != null) {
 			throw new Exception("The variable '" + alias + "' is already used. Choose another. " + assertionRepr);
 		}
 
@@ -587,10 +580,10 @@ public class AssertionServiceImpl implements AssertionService {
 		switch (aq.getQuantifier()) {
 		case "forall":
 			while (iter.hasNext()) {
-				WSCoLAnalyser.putVariable(alias, iter.next());
+				VariablesHelper.putVariable(alias, iter.next());
 				result = verifyAssertions(aq.getConditions());
 				if (!result) {
-					WSCoLAnalyser.removeVariable(alias);
+					VariablesHelper.removeVariable(alias);
 					return false;
 				}
 			}
@@ -598,20 +591,20 @@ public class AssertionServiceImpl implements AssertionService {
 		case "exists":
 			result = false;
 			while (iter.hasNext()) {
-				WSCoLAnalyser.putVariable(alias, iter.next());
+				VariablesHelper.putVariable(alias, iter.next());
 				result = result | verifyAssertions(aq.getConditions());
 			}
-			WSCoLAnalyser.removeVariable(alias);
+			VariablesHelper.removeVariable(alias);
 			return result;
 		case "numOf":
 			count = 0;
 			while (iter.hasNext()) {
-				WSCoLAnalyser.putVariable(alias, iter.next());
+				VariablesHelper.putVariable(alias, iter.next());
 				if (verifyAssertions(aq.getConditions())) {
 					count = count + 1;
 				}
 			}
-			WSCoLAnalyser.removeVariable(alias);
+			VariablesHelper.removeVariable(alias);
 			return count;
 		case "sum":
 			sum = 0;
@@ -620,12 +613,12 @@ public class AssertionServiceImpl implements AssertionService {
 				if (!(next instanceof Double)) {
 					throw new Exception("The variable '" + aq.getVar() + "' contains an element of class '" + next.getClass().getSimpleName() + "'. Only Doubles are accepted by '" + aq.getQuantifier() + "' function " + assertionRepr);
 				}
-				WSCoLAnalyser.putVariable(alias, next);
+				VariablesHelper.putVariable(alias, next);
 				if (verifyAssertions(aq.getConditions())) {
 					sum += (double) next;
 				}
 			}
-			WSCoLAnalyser.removeVariable(alias);
+			VariablesHelper.removeVariable(alias);
 			return sum;
 		case "avg":
 			sum = 0;
@@ -635,13 +628,13 @@ public class AssertionServiceImpl implements AssertionService {
 				if (!(next instanceof Double)) {
 					throw new Exception("The variable '" + aq.getVar() + "' contains an element of class '" + next.getClass().getSimpleName() + "'. Only Doubles are accepted by '" + aq.getQuantifier() + "' function " + assertionRepr);
 				}
-				WSCoLAnalyser.putVariable(alias, next);
+				VariablesHelper.putVariable(alias, next);
 				if (verifyAssertions(aq.getConditions())) {
 					sum += (double) next;
 					count += 1;
 				}
 			}
-			WSCoLAnalyser.removeVariable(alias);
+			VariablesHelper.removeVariable(alias);
 			return sum / count;
 		case "product":
 			double product = 1;
@@ -650,12 +643,12 @@ public class AssertionServiceImpl implements AssertionService {
 				if (!(next instanceof Double)) {
 					throw new Exception("The variable '" + aq.getVar() + "' contains an element of class '" + next.getClass().getSimpleName() + "'. Only Doubles are accepted by '" + aq.getQuantifier() + "' function " + assertionRepr);
 				}
-				WSCoLAnalyser.putVariable(alias, next);
+				VariablesHelper.putVariable(alias, next);
 				if (verifyAssertions(aq.getConditions())) {
 					product *= (double) next;
 				}
 			}
-			WSCoLAnalyser.removeVariable(alias);
+			VariablesHelper.removeVariable(alias);
 			return product;
 		case "max":
 			double max = Double.NEGATIVE_INFINITY;
@@ -664,14 +657,14 @@ public class AssertionServiceImpl implements AssertionService {
 				if (!(next instanceof Double)) {
 					throw new Exception("The variable '" + aq.getVar() + "' contains an element of class '" + next.getClass().getSimpleName() + "'. Only Doubles are accepted by '" + aq.getQuantifier() + "' function " + assertionRepr);
 				}
-				WSCoLAnalyser.putVariable(alias, next);
+				VariablesHelper.putVariable(alias, next);
 				if (verifyAssertions(aq.getConditions())) {
 					if ((double) next > max) {
 						max = (double) next;
 					}
 				}
 			}
-			WSCoLAnalyser.removeVariable(alias);
+			VariablesHelper.removeVariable(alias);
 			return max;
 		case "min":
 			double min = Double.POSITIVE_INFINITY;
@@ -680,14 +673,14 @@ public class AssertionServiceImpl implements AssertionService {
 				if (!(next instanceof Double)) {
 					throw new Exception("The variable '" + aq.getVar() + "' contains an element of class '" + next.getClass().getSimpleName() + "'. Only Doubles are accepted by '" + aq.getQuantifier() + "' function " + assertionRepr);
 				}
-				WSCoLAnalyser.putVariable(alias, next);
+				VariablesHelper.putVariable(alias, next);
 				if (verifyAssertions(aq.getConditions())) {
 					if ((double) next < min) {
 						min = (double) next;
 					}
 				}
 			}
-			WSCoLAnalyser.removeVariable(alias);
+			VariablesHelper.removeVariable(alias);
 			return min;
 		default:
 			return null; // never reached: other cases are blocked by the grammar parser as errors

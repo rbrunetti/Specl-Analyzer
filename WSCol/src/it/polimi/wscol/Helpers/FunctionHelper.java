@@ -45,6 +45,7 @@ public class FunctionHelper {
 	 * @throws Exception
 	 *             if the type of parameter is wrong, according to the function, and prints out the value and the expected type
 	 */
+	@SuppressWarnings("null")
 	private static Object applyStringFunctions(Object object, String name, List<Object> params) throws Exception {
 		switch (name) {
 		case "uppercase":

@@ -1,22 +1,21 @@
 package it.polimi.wscol.declaration;
 
-import it.polimi.wscol.WSCoLAnalyser;
 import it.polimi.wscol.Helpers.FunctionHelper;
 import it.polimi.wscol.Helpers.StringHelper;
+import it.polimi.wscol.Helpers.VariablesHelper;
 import it.polimi.wscol.assertions.AssertionService;
-import it.polimi.wscol.assertions.AssertionServiceImpl;
+import it.polimi.wscol.dataobject.DataObject;
 import it.polimi.wscol.wscol.AssertionQuantified;
 import it.polimi.wscol.wscol.Constant;
 import it.polimi.wscol.wscol.Declaration;
 import it.polimi.wscol.wscol.Expression;
 import it.polimi.wscol.wscol.Value;
+import it.polimi.wscol.wscol.Values;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 
 public class DeclarationServiceImpl implements DeclarationService{
@@ -25,8 +24,8 @@ public class DeclarationServiceImpl implements DeclarationService{
 	
 	private static Logger logger = Logger.getRootLogger();
 	
-	public DeclarationServiceImpl(){
-		as = new AssertionServiceImpl();
+	public DeclarationServiceImpl(AssertionService as){
+		this.as = as;
 //		logger.getLoggerRepository().resetConfiguration();
 //		logger.addAppender(new ConsoleAppender(new PatternLayout("%5p - %m%n")));
 	}
@@ -55,8 +54,8 @@ public class DeclarationServiceImpl implements DeclarationService{
 		
 		for (Declaration d : declarations) {
 			String assertionRep = StringHelper.declarationToString(d);
-			if (WSCoLAnalyser.getVariable(d.getVar()) != null) {
-				throw new Exception("The variable '" + d.getVar() + "' in '" + StringHelper.declarationToString(d) + "' is already used (" + d.getVar() + " = " + WSCoLAnalyser.getVariable(d.getVar()) + "). Choose another [token: '" + assertionRep + "']");
+			if (VariablesHelper.getVariable(d.getVar()) != null) {
+				throw new Exception("The variable '" + d.getVar() + "' in '" + StringHelper.declarationToString(d) + "' is already used (" + d.getVar() + " = " + VariablesHelper.getVariable(d.getVar()) + "). Choose another [token: '" + assertionRep + "']");
 			}
 			
 			if (d.getAssert() instanceof Constant) {
@@ -101,7 +100,7 @@ public class DeclarationServiceImpl implements DeclarationService{
 				result = d.getAssert().isBoolean();
 			}
 
-			WSCoLAnalyser.putVariable(d.getVar(), result);
+			VariablesHelper.putVariable(d.getVar(), result);
 			
 			if(logger.isInfoEnabled()){
 				logger.info(StringHelper.declarationToString(d));

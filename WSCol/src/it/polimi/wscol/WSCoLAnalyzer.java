@@ -1,6 +1,7 @@
 package it.polimi.wscol;
 
 import it.polimi.wscol.Helpers.StringHelper;
+import it.polimi.wscol.Helpers.VariablesHelper;
 import it.polimi.wscol.assertions.AssertionService;
 import it.polimi.wscol.assertions.AssertionServiceImpl;
 import it.polimi.wscol.dataobject.DataObject;
@@ -17,7 +18,6 @@ import it.polimi.wscol.wscol.Step;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -40,31 +40,34 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.inject.Injector;
 
 /**
- * WSCoL Analyser provides methods for setup the input file and the WSCoL assertions to check.
+ * WSCoL Analyzer provides methods for setup the input file and the WSCoL assertions to check.
  * With <i>evaluate()</i> method the assertions are verified.
+ * It's offering methods for retrieve the declared variables by its name, and handle them outside the analyzer.
  * 
  * @author Riccardo Brunetti
  */
-public class WSCoLAnalyser {
+public class WSCoLAnalyzer {
 	
 	private Injector injector;
-	private WSCoLAnalyser main;
+//	private WSCoLAnalyser main;
 
 	private static Logger logger = Logger.getRootLogger();
 	
-	private static String wscolFilePath;
-	private static Map<String, Object> variables;
+	private String wscolFilePath;
 	private static DataObject input;
 	
-	private static AssertionService assertionService;
-	private static DeclarationService declarationService;
+	private AssertionService assertionService;
+	private DeclarationService declarationService;
 	
-	public WSCoLAnalyser() {
+	public WSCoLAnalyzer() {
 		assertionService = new AssertionServiceImpl();
-		declarationService = new DeclarationServiceImpl();
-		variables = new HashMap<>();
+		declarationService = new DeclarationServiceImpl(assertionService);
+		
+		input = null; // each new analyzer has it's own input file (note that it's static)
+		new VariablesHelper(); //initialize the static map for variables
 		
 		logger.removeAllAppenders();
+		logger.setLevel(Level.INFO);
 		logger.addAppender(new ConsoleAppender(new PatternLayout("%5p - %m%n")));
 	}
 	
@@ -117,7 +120,7 @@ public class WSCoLAnalyser {
 		}
 		
 		injector = new it.polimi.wscol.WSColStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
-		main = injector.getInstance(WSCoLAnalyser.class);
+//		main = injector.getInstance(WSCoLAnalyser.class);
 		
 		if(input == null) {
 			throw new Exception("Input not found or not defined");
@@ -142,7 +145,7 @@ public class WSCoLAnalyser {
 			throw new Exception(msg);
 		}
 		
-		return main.runGenerator(res);
+		return this.runGenerator(res);
 	}
 	
 	/**
@@ -276,8 +279,8 @@ public class WSCoLAnalyser {
 	 * @return the corresponding value if the key is found, null otherwise
 	 * @see Map#get(Object)
 	 */
-	public static Object getVariable(String key) {
-		return variables.get(key);
+	public Object getVariable(String key) {
+		return VariablesHelper.getVariable(key);
 	}
 	
 	/**
@@ -288,8 +291,8 @@ public class WSCoLAnalyser {
 	 * @return the previous value associated with key, or null if there was no mapping for key
 	 * @see Map#put(Object)
 	 */
-	public static Object putVariable(String key, Object value){
-		return variables.put(key, value);
+	public void putVariable(String key, Object value){
+		VariablesHelper.putVariable(key, value);
 	}
 	
 	/**
@@ -299,8 +302,8 @@ public class WSCoLAnalyser {
 	 * @return the previous value associated with key, or null if there was no mapping for key
 	 * @see Map#remove(Object)
 	 */
-	public static Object removeVariable(String key) {
-		return variables.remove(key);
+	public void removeVariable(String key) {
+		VariablesHelper.removeVariable(key);
 	}
 	
 	/**

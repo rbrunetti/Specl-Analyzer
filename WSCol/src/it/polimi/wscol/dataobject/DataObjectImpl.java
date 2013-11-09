@@ -1,11 +1,11 @@
 package it.polimi.wscol.dataobject;
 
-import it.polimi.wscol.WSCoL;
+import it.polimi.wscol.WSCoLAnalyser;
+import it.polimi.wscol.Helpers.VariablesHelper;
 import it.polimi.wscol.wscol.Predicate;
 import it.polimi.wscol.wscol.Step;
+import it.polimi.wscol.wscol.Values;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -14,9 +14,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.management.Query;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
@@ -27,7 +24,6 @@ import org.json.simple.parser.ParseException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
-import org.xml.sax.SAXException;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -86,12 +82,12 @@ public class DataObjectImpl implements DataObject {
 	 * @param isJson
 	 *            if <code>true</code> the string param is intendes as JSON, otherwise as the path of the XML file to read
 	 */
-	public DataObjectImpl(String string, boolean isJson) {
-		if (isJson) {
-			data = parseJSON(string);
-		} else {
-			data = parseXML(string);
-		}
+	public DataObjectImpl(String jsonString) {
+		data = parseJSON(jsonString);
+	}
+	
+	public DataObjectImpl(Document xml) {
+		data = parseXML(xml);
 	}
 
 	// ****************************
@@ -242,7 +238,7 @@ public class DataObjectImpl implements DataObject {
 	private static int evaluateNumericPredicate(Predicate predicate) throws Exception {
 		// check the case in which there's a variable instead of a String or a Double
 		if (predicate.getVar() != null) {
-			Object num = WSCoL.getVariable(predicate.getVar());
+			Object num = WSCoLAnalyser.getVariable(predicate.getVar());
 			if (num instanceof Double) {
 				return (int) (double) num;
 			} else if (num == null) {
@@ -277,7 +273,7 @@ public class DataObjectImpl implements DataObject {
 
 				// check if the comparison is done with a variable; if necessary retrieve the value
 				if (predicate.getVarValue() != null) {
-					Object value = WSCoL.getVariable(predicate.getVarValue());
+					Object value = WSCoLAnalyser.getVariable(predicate.getVarValue());
 					if (value != null) {
 						if (value instanceof String) {
 							strValue = (String) value;
@@ -553,21 +549,27 @@ public class DataObjectImpl implements DataObject {
 	 *            the path of the XML file to parse
 	 * @return the corresponding {@link LinkedHashMultimap} parsed from the XML
 	 */
-	private LinkedHashMultimap<String, Object> parseXML(String xmlPath) {
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder;
-		try {
-			builder = factory.newDocumentBuilder();
-			Document doc = builder.parse(new File(xmlPath));
-			doc.getDocumentElement().normalize();
-			Node root = doc.getFirstChild();
-			return stepThroughXML(root).data;
-		} catch (ParserConfigurationException e2) {
-			e2.printStackTrace();
-		} catch (SAXException | IOException e1) {
-			e1.printStackTrace();
-		}
-		return null;
+//	private LinkedHashMultimap<String, Object> parseXML(String xmlPath) {
+//		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+//		DocumentBuilder builder;
+//		try {
+//			builder = factory.newDocumentBuilder();
+//			Document doc = builder.parse(new File(xmlPath));
+//			doc.getDocumentElement().normalize();
+//			Node root = doc.getFirstChild();
+//			return stepThroughXML(root).data;
+//		} catch (ParserConfigurationException e2) {
+//			e2.printStackTrace();
+//		} catch (SAXException | IOException e1) {
+//			e1.printStackTrace();
+//		}
+//		return null;
+//	}
+	
+	private LinkedHashMultimap<String, Object> parseXML(Document xml) {
+		xml.getDocumentElement().normalize();
+		Node root = xml.getFirstChild();
+		return stepThroughXML(root).data;
 	}
 
 	/**

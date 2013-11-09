@@ -1,6 +1,6 @@
 package it.polimi.wscol.declaration;
 
-import it.polimi.wscol.WSCoL;
+import it.polimi.wscol.WSCoLAnalyser;
 import it.polimi.wscol.Helpers.FunctionHelper;
 import it.polimi.wscol.Helpers.StringHelper;
 import it.polimi.wscol.assertions.AssertionService;
@@ -14,17 +14,21 @@ import it.polimi.wscol.wscol.Value;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 
 public class DeclarationServiceImpl implements DeclarationService{
 
 	private AssertionService as;
 	
-	private static Logger logger = Logger.getLogger(DeclarationServiceImpl.class);
+	private static Logger logger = Logger.getRootLogger();
 	
 	public DeclarationServiceImpl(){
 		as = new AssertionServiceImpl();
+//		logger.getLoggerRepository().resetConfiguration();
+//		logger.addAppender(new ConsoleAppender(new PatternLayout("%5p - %m%n")));
 	}
 
 	/**
@@ -51,8 +55,8 @@ public class DeclarationServiceImpl implements DeclarationService{
 		
 		for (Declaration d : declarations) {
 			String assertionRep = StringHelper.declarationToString(d);
-			if (WSCoL.getVariable(d.getVar()) != null) {
-				throw new Exception("The variable '" + d.getVar() + "' in '" + StringHelper.declarationToString(d) + "' is already used (" + d.getVar() + " = " + WSCoL.getVariable(d.getVar()) + "). Choose another [token: '" + assertionRep + "']");
+			if (WSCoLAnalyser.getVariable(d.getVar()) != null) {
+				throw new Exception("The variable '" + d.getVar() + "' in '" + StringHelper.declarationToString(d) + "' is already used (" + d.getVar() + " = " + WSCoLAnalyser.getVariable(d.getVar()) + "). Choose another [token: '" + assertionRep + "']");
 			}
 			
 			if (d.getAssert() instanceof Constant) {
@@ -97,7 +101,7 @@ public class DeclarationServiceImpl implements DeclarationService{
 				result = d.getAssert().isBoolean();
 			}
 
-			WSCoL.putVariable(d.getVar(), result);
+			WSCoLAnalyser.putVariable(d.getVar(), result);
 			
 			if(logger.isInfoEnabled()){
 				logger.info(StringHelper.declarationToString(d));

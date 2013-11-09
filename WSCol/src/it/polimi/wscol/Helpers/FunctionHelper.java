@@ -116,6 +116,21 @@ public class FunctionHelper {
 			} else {
 				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
 			}
+		case "contains":
+			if(params.size() == 1){
+				return ((String) object).contains((String)params.get(1));
+			} else {
+				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
+			}
+		case "concat":
+			if(params != null){
+				for(int j=0; j<params.size(); j++){
+					((String) object).concat((String) params.get(j));
+				}
+				return object;
+			} else {
+				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
+			}
 		default:
 			throw new Exception("Unsupported function '" + name + "' for a " + object.getClass().getSimpleName() + " (value: \"" + object + "\")");
 		}

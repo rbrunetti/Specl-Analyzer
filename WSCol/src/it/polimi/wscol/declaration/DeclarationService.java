@@ -21,5 +21,5 @@ public interface DeclarationService {
 	 * @throws Exception
 	 *             if the evaluation gives back an empty result
 	 */
-	void setVariable(EObjectContainmentEList<Declaration> declarations) throws Exception;
+	public void setVariable(EObjectContainmentEList<Declaration> declarations) throws Exception;
 }

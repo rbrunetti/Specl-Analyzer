@@ -14,90 +14,152 @@ import it.polimi.wscol.wscol.Declaration;
 import it.polimi.wscol.wscol.Model;
 import it.polimi.wscol.wscol.Step;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.math.BigDecimal;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 import org.eclipse.xtext.nodemodel.ICompositeNode;
 import org.eclipse.xtext.nodemodel.INode;
 import org.eclipse.xtext.nodemodel.SyntaxErrorMessage;
 import org.eclipse.xtext.resource.XtextResource;
+import org.eclipse.xtext.resource.XtextResourceSet;
+import org.w3c.dom.Document;
 
-import com.google.inject.Inject;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.inject.Injector;
-import com.google.inject.Provider;
 
-public class WSCoL {
+/**
+ * WSCoL Analyser provides methods for setup the input file and the WSCoL assertions to check.
+ * With <i>evaluate()</i> method the assertions are verified.
+ * 
+ * @author Riccardo Brunetti
+ */
+public class WSCoLAnalyser {
 	
-	@Inject
-	private Provider<ResourceSet> resourceSetProvider;
+	private Injector injector;
+	private WSCoLAnalyser main;
 
-	private static Logger logger = Logger.getLogger(WSCoL.class);;
+	private static Logger logger = Logger.getRootLogger();
 	
 	private static String wscolFilePath;
-	private static String inputFilePath;
 	private static Map<String, Object> variables;
 	private static DataObject input;
 	
 	private static AssertionService assertionService;
 	private static DeclarationService declarationService;
 	
-	public static void main(String[] args) {
-		new WSCoL().evaluate(args);
-	}
-	
-	public boolean evaluate(String[] args) {
-		Injector injector = new it.polimi.wscol.WSColStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
-		WSCoL main = injector.getInstance(WSCoL.class);
-		
-		variablesSetUp(args);
-		
-		File f = new File(wscolFilePath);
-		String string = f.toURI().toString();
-
-		return main.runGenerator(string);
-	}
-	
-	private static void variablesSetUp(String[] args){
-		
-		if(args.length != 3) {
-			logger.error("WSCol Usage: wscol [wscol assertions file] [-json|-xml] [input file]\n'-json' and '-xml' for type of input type.");
-			logger.error("Examples:\n wscol rules.wscol -xml input.xml\n");
-			System.exit(0);
-		}
-		
-		if(logger.isInfoEnabled()){
-			logger.info("*** WSCoL Analyzer ***");
-		}
-		
-		wscolFilePath = args[0];
-		boolean isJson = (args[1].equals("-json") ? true : false);
-		inputFilePath = args[2];
-		
-		if(logger.isInfoEnabled()){
-			logger.info("Readed " + args[0] + " and " + args[2]);
-		}
-		
+	public WSCoLAnalyser() {
 		assertionService = new AssertionServiceImpl();
 		declarationService = new DeclarationServiceImpl();
-		
 		variables = new HashMap<>();
-		input = new DataObjectImpl(inputFilePath, isJson);
 		
+		logger.removeAllAppenders();
+		logger.addAppender(new ConsoleAppender(new PatternLayout("%5p - %m%n")));
 	}
 	
-	protected boolean runGenerator(String string) {
+	/**
+	 * Set the XML {@link Document} input file to parse to a {@link DataObject}
+	 * 
+	 * @param doc the XML to parse
+	 */
+	public void setXMLInput(Document doc) {
+		input = new DataObjectImpl(doc);
+	}
+	
+	/**
+	 * Set the JSON input to parse to a {@link DataObject}
+	 * 
+	 * @param json
+	 */
+	public void setJSONInput(String json) {
+		input = new DataObjectImpl(json);
+	}
+	
+	/**
+	 * Set the map to assign to a {@link DataObject}
+	 * @param map
+	 */
+	public void setMapInput(LinkedHashMultimap<String, Object> map) {
+		input = new DataObjectImpl(map);
+	}
+	
+	/**
+	 * Set the path of the WSCoL assertions file
+	 * 
+	 * @param path the path of the file to parse
+	 */
+	public void setWscolFilePath(String path) {
+		wscolFilePath = path;
+	}
+	
+	/**
+	 * Evaluate the assertions by passing WSCoL assertions
+	 * 
+	 * @param wscol the string containing the WSCoL assertions
+	 * @return <code>true</code> if the assertions are respected, <code>false</code> otherwise
+	 * @throws Exception if the input is not found or not defined
+	 * @throws Exception if the assertions are not found or not defined
+	 */
+	public boolean evaluate(String wscol) throws Exception {
+		if(logger.isInfoEnabled()){
+			logger.info("***** WSCoL Analyser *****");
+		}
+		
+		injector = new it.polimi.wscol.WSColStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
+		main = injector.getInstance(WSCoLAnalyser.class);
+		
+		if(input == null) {
+			throw new Exception("Input not found or not defined");
+		}
+		File f;
+		
+		XtextResourceSet resSet = injector.getInstance(XtextResourceSet.class);
+		resSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
+		Resource res;
+		
+		if(wscol != ""){
+			InputStream in = new ByteArrayInputStream(wscol.getBytes());
+			f = new File("__assertions.wscol");
+			res = resSet.createResource(URI.createURI(f.toURI().toString()));
+			res.load(in, resSet.getLoadOptions());
+		} else if(wscolFilePath != null){
+			f = new File(wscolFilePath);
+			res = resSet.getResource(URI.createURI(f.toURI().toString()), true);
+		} else {
+			String msg = "Assertions not found or not defined. Please pass a string or the path of the file containing them.";
+			logger.error(msg);
+			throw new Exception(msg);
+		}
+		
+		return main.runGenerator(res);
+	}
+	
+	/**
+	 * Evaluate the assertions from previously assigned file 
+	 * 
+	 * @return <code>true</code> if the assertions are respected, <code>false</code> otherwise
+	 * @throws Exception if the input is not found or not defined
+	 * @throws Exception if the assertions are not found or not defined
+	 */
+	public boolean evaluate() throws Exception {
+		return evaluate("");
+	}
+	
+	private boolean runGenerator(Resource resource) {
 		// load the resource and parse it
-		ResourceSet set = resourceSetProvider.get();
-		Resource resource = set.getResource(URI.createURI(string), true);
+//		ResourceSet set = resourceSetProvider.get();
+//		Resource resource = set.getResource(URI.createURI(string), true);
 
 		// check for syntax errors
 		if (syntaxErrors(resource)) {
@@ -108,13 +170,13 @@ public class WSCoL {
 		Model model = (Model) resource.getContents().get(0);
 		EObjectContainmentEList<Declaration> declarations = (EObjectContainmentEList<Declaration>) model.getDeclarations();
 		Assertions assertionSet = model.getAssertionSet();
-
+		
 		if(logger.isInfoEnabled()){
 			// print out the DataObject conversion of the XML file
 			logger.info("INPUT: " + input);
 	
-			logger.info(declarations.size() + " declarations");
-			logger.info("? assertions"); //TODO
+			logger.info(declarations.size() + " declarations found");
+			logger.info(assertionSet.eContents().size() + " assertions found"); //TODO
 		}
 
 		// get variables declaration and sets the hashmap
@@ -248,6 +310,34 @@ public class WSCoL {
 	 */
 	public static DataObject getInput() {
 		return input;
+	}
+	
+	/**
+	 * Change the level of logger (between ERROR, INFO, DEBUG).
+	 * By default it is set to INFO.
+	 * 
+	 * @param level the name of the needed level to select
+	 */
+	
+	public void setLoggerLevel(String level) {
+		switch (level.toUpperCase()) {
+		case "ERROR":
+			logger.setLevel(Level.ERROR);
+			return;
+		case "INFO":
+			logger.setLevel(Level.INFO);
+			return;
+		case "DEBUG":
+			logger.setLevel(Level.DEBUG);
+			return;
+		}
+	}
+	
+	/**
+	 * Shutdown logger's appender
+	 */
+	public void shutdownLogger() {
+		logger.setLevel(Level.OFF);
 	}
 	
 	

@@ -558,13 +558,9 @@ public class AssertionServiceImpl implements AssertionService {
 			throw new Exception("The variable '" + aq.getVar() + "' is not defined. " + assertionRepr);
 		}
 		
-		boolean isDataObject;
-		if (variable instanceof DataObject) {
-			isDataObject = true;
-		} else if(variable instanceof ArrayList) {
-			isDataObject = false;
-		} else {
-			throw new Exception("Could not iterate over a " + variable.getClass().getSimpleName() + " (" + aq.getVar() + "). A DataObject type was expected " + assertionRepr);
+		if(!(variable instanceof ArrayList)) {
+			throw new Exception("Could not iterate over a " + variable.getClass().getSimpleName() + " (" + aq.getVar() + ")."
+					+ " Aggregated functions accepts only elements with cardinality greater than one (Array) " + assertionRepr);
 		}
 
 		String alias = aq.getAlias();
@@ -575,7 +571,7 @@ public class AssertionServiceImpl implements AssertionService {
 			throw new Exception("The variable '" + alias + "' is already used. Choose another. " + assertionRepr);
 		}
 
-		Iterator<Object> iter = ((isDataObject) ? ((DataObject) variable).values().iterator() : ((ArrayList<Object>) variable).iterator());
+		Iterator<Object> iter = ((ArrayList<Object>) variable).iterator();
 
 		switch (aq.getQuantifier()) {
 		case "forall":

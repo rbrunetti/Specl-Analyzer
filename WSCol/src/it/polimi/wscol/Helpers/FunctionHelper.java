@@ -180,6 +180,12 @@ public class FunctionHelper {
 			} else {
 				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
 			}
+		case "toString":
+			if (params == null) {
+				return String.valueOf((double) object);
+			} else {
+				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
+			}
 		default:
 			throw new Exception("Unsupported function '" + name + "' for a " + object.getClass().getSimpleName() + " (value: \"" + object + "\")");
 		}

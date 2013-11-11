@@ -2,6 +2,7 @@ package it.polimi.wscol;
 
 import it.polimi.wscol.Helpers.StringHelper;
 import it.polimi.wscol.Helpers.VariablesHelper;
+import it.polimi.wscol.Helpers.WSCoLException;
 import it.polimi.wscol.assertions.AssertionService;
 import it.polimi.wscol.assertions.AssertionServiceImpl;
 import it.polimi.wscol.dataobject.DataObject;
@@ -17,6 +18,7 @@ import it.polimi.wscol.wscol.Step;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Map;
@@ -78,6 +80,7 @@ public class WSCoLAnalyzer {
 	 */
 	public void setXMLInput(Document doc) {
 		input = new DataObjectImpl(doc);
+		input.equals("");
 	}
 	
 	/**
@@ -111,10 +114,11 @@ public class WSCoLAnalyzer {
 	 * 
 	 * @param wscol the string containing the WSCoL assertions
 	 * @return <code>true</code> if the assertions are respected, <code>false</code> otherwise
-	 * @throws Exception if the input is not found or not defined
-	 * @throws Exception if the assertions are not found or not defined
+	 * @throws WSCoLException if the input is not found or not defined
+	 * @throws WSCoLException if the assertions are not found or not defined
+	 * @throws WSCoLException if the evaluation goes wrong
 	 */
-	public boolean evaluate(String wscol) throws Exception {
+	public boolean evaluate(String wscol) throws WSCoLException {
 		if(logger.isInfoEnabled()){
 			logger.info("***** WSCoL Analyser *****");
 		}
@@ -123,7 +127,7 @@ public class WSCoLAnalyzer {
 //		main = injector.getInstance(WSCoLAnalyser.class);
 		
 		if(input == null) {
-			throw new Exception("Input not found or not defined");
+			throw new WSCoLException("Input not found or not defined");
 		}
 		File f;
 		
@@ -135,14 +139,18 @@ public class WSCoLAnalyzer {
 			InputStream in = new ByteArrayInputStream(wscol.getBytes());
 			f = new File("__assertions.wscol");
 			res = resSet.createResource(URI.createURI(f.toURI().toString()));
-			res.load(in, resSet.getLoadOptions());
+			try {
+				res.load(in, resSet.getLoadOptions());
+			} catch (IOException e) {
+				throw new WSCoLException(e);
+			}
 		} else if(wscolFilePath != null){
 			f = new File(wscolFilePath);
 			res = resSet.getResource(URI.createURI(f.toURI().toString()), true);
 		} else {
 			String msg = "Assertions not found or not defined. Please pass a string or the path of the file containing them.";
 			logger.error(msg);
-			throw new Exception(msg);
+			throw new WSCoLException(msg);
 		}
 		
 		return this.runGenerator(res);
@@ -152,14 +160,14 @@ public class WSCoLAnalyzer {
 	 * Evaluate the assertions from previously assigned file 
 	 * 
 	 * @return <code>true</code> if the assertions are respected, <code>false</code> otherwise
-	 * @throws Exception if the input is not found or not defined
-	 * @throws Exception if the assertions are not found or not defined
+	 * @throws WSCoLException if the input is not found or not defined
+	 * @throws WSCoLException if the assertions are not found or not defined
 	 */
-	public boolean evaluate() throws Exception {
+	public boolean evaluate() throws WSCoLException {
 		return evaluate("");
 	}
 	
-	private boolean runGenerator(Resource resource) {
+	private boolean runGenerator(Resource resource) throws WSCoLException {
 		// load the resource and parse it
 //		ResourceSet set = resourceSetProvider.get();
 //		Resource resource = set.getResource(URI.createURI(string), true);
@@ -187,7 +195,7 @@ public class WSCoLAnalyzer {
 			declarationService.setVariable(declarations);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
-			System.exit(0);
+			throw new WSCoLException(e);
 		}
 
 		// verify the assertions
@@ -202,7 +210,7 @@ public class WSCoLAnalyzer {
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
-			System.exit(0);
+			throw new WSCoLException(e);
 		}
 		return result;
 	}

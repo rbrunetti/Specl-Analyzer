@@ -1,6 +1,5 @@
 package it.polimi.wscol.dataobject;
 
-import it.polimi.wscol.WSCoLAnalyzer;
 import it.polimi.wscol.Helpers.VariablesHelper;
 import it.polimi.wscol.wscol.Predicate;
 import it.polimi.wscol.wscol.Step;
@@ -21,6 +20,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
@@ -302,30 +302,36 @@ public class DataObjectImpl implements DataObject {
 					Iterator<Object> iter = set.iterator();
 					while (iter.hasNext()) {
 						switch (op) {
-						case "=":
+						case "==":
 							if ((double) iter.next() == numericValue) {
 								return true;
 							}
+							break;
 						case "!=":
 							if ((double) iter.next() != numericValue) {
 								return true;
 							}
+							break;
 						case ">":
 							if ((double) iter.next() > numericValue) {
 								return true;
 							}
+							break;
 						case ">=":
 							if ((double) iter.next() >= numericValue) {
 								return true;
 							}
+							break;
 						case "<":
 							if ((double) iter.next() < numericValue) {
 								return true;
 							}
+							break;
 						case "<=":
 							if ((double) iter.next() <= numericValue) {
 								return true;
 							}
+							break;
 						}
 					}
 					return false;
@@ -580,35 +586,42 @@ public class DataObjectImpl implements DataObject {
 	 * @return a {@link DataObject} conversion of XML
 	 */
 	private DataObjectImpl stepThroughXML(Node root) {
-		String name = root.getNodeName();
+		String name = ((root.getNodeName().split(":").length == 2) ? root.getNodeName().split(":")[1] : root.getNodeName());
 		DataObjectImpl father = new DataObjectImpl();
 		DataObjectImpl sons = new DataObjectImpl();
 
 		// clear all the useless nodes
-		for (int i = 0; i < root.getChildNodes().getLength(); i++) {
-			Node s = root.getChildNodes().item(i);
-			if (s.getNodeName().equals("#text"))
-				root.removeChild(s);
-		}
+//		for (int i = 0; i < root.getChildNodes().getLength(); i++) {
+//			Node s = root.getChildNodes().item(i);
+//			if (s.getNodeName().equals("#text") || s.getNodeName().equals("#comment"))
+//				root.removeChild(s);
+//		}
 
 		for (int i = 0; i < root.getChildNodes().getLength(); i++) {
-			Node son = root.getChildNodes().item(i);
-			String sn = son.getNodeName().trim();
-			// String sv = son.getNodeValue();
-			String st = son.getTextContent().trim();
-			if (son.getChildNodes().getLength() == 0 || (son.getChildNodes().getLength() == 1 && son.getFirstChild() instanceof Text)) {
-				if (!st.equals("")) {
-					try {
-						double num = Double.parseDouble(st);
-						sons.put(sn, num);
-					} catch (NumberFormatException e) {
-						sons.put(sn, st);
+			if(!(root.getChildNodes().item(i) instanceof Text || root.getChildNodes().item(i) instanceof Comment)){
+					
+				Node son = root.getChildNodes().item(i);
+				String sn = ((son.getNodeName().split(":").length == 2) ? son.getNodeName().split(":")[1] : son.getNodeName());
+				// String sv = son.getNodeValue();
+				String st = son.getTextContent().trim();
+				if (son.getChildNodes().getLength() == 0 || (son.getChildNodes().getLength() == 1 && son.getFirstChild() instanceof Text)) {
+					if (!st.equals("")) {
+						try {
+							if(st.startsWith("0") && !st.startsWith("0.")) { // it's a string
+								sons.put(sn, st);
+							} else {
+								double num = Double.parseDouble(st);
+								sons.put(sn, num);
+							}
+						} catch (NumberFormatException e) {
+							sons.put(sn, st);
+						}
+					} else {
+						sons.put(sn, new DataObjectImpl());
 					}
 				} else {
-					sons.put(sn, new DataObjectImpl());
+					sons.putAll(stepThroughXML(son));
 				}
-			} else {
-				sons.putAll(stepThroughXML(son));
 			}
 		}
 		father.put(name, sons);

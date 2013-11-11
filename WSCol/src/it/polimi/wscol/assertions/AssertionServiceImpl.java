@@ -1,11 +1,11 @@
 package it.polimi.wscol.assertions;
 
 import it.polimi.wscol.WSCoLAnalyzer;
-import it.polimi.wscol.Helpers.FunctionHelper;
-import it.polimi.wscol.Helpers.StringHelper;
-import it.polimi.wscol.Helpers.VariablesHelper;
 import it.polimi.wscol.dataobject.DataObject;
 import it.polimi.wscol.dataobject.DataObjectImpl;
+import it.polimi.wscol.helpers.FunctionHelper;
+import it.polimi.wscol.helpers.StringHelper;
+import it.polimi.wscol.helpers.VariablesHelper;
 import it.polimi.wscol.services.WSColGrammarAccess.AssertionQuantifiedBooleanElements;
 import it.polimi.wscol.services.WSColGrammarAccess.AssertionQuantifiedNumericElements;
 import it.polimi.wscol.wscol.Assertion;
@@ -486,7 +486,7 @@ public class AssertionServiceImpl implements AssertionService {
 				if (steps.size() > 1) {
 					result = DataObjectImpl.evaluateArray((ArrayList<Object>) value, steps); //TODO non il massimo
 				} else {
-					result = (ArrayList<Object>) value;
+					result = value;
 				}
 
 				// if (result instanceof ArrayList && ((ArrayList<Object>) result).size() == 1) {

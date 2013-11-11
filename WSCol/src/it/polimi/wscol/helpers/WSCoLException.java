@@ -1,4 +1,4 @@
-package it.polimi.wscol.Helpers;
+package it.polimi.wscol.helpers;
 
 public class WSCoLException extends Exception {
 

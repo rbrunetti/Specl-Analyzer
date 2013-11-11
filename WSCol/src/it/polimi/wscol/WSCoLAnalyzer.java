@@ -1,14 +1,14 @@
 package it.polimi.wscol;
 
-import it.polimi.wscol.Helpers.StringHelper;
-import it.polimi.wscol.Helpers.VariablesHelper;
-import it.polimi.wscol.Helpers.WSCoLException;
 import it.polimi.wscol.assertions.AssertionService;
 import it.polimi.wscol.assertions.AssertionServiceImpl;
 import it.polimi.wscol.dataobject.DataObject;
 import it.polimi.wscol.dataobject.DataObjectImpl;
 import it.polimi.wscol.declaration.DeclarationService;
 import it.polimi.wscol.declaration.DeclarationServiceImpl;
+import it.polimi.wscol.helpers.StringHelper;
+import it.polimi.wscol.helpers.VariablesHelper;
+import it.polimi.wscol.helpers.WSCoLException;
 import it.polimi.wscol.wscol.Assertion;
 import it.polimi.wscol.wscol.AssertionForm;
 import it.polimi.wscol.wscol.Assertions;

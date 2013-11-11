@@ -1,6 +1,6 @@
 package it.polimi.wscol.dataobject;
 
-import it.polimi.wscol.Helpers.VariablesHelper;
+import it.polimi.wscol.helpers.VariablesHelper;
 import it.polimi.wscol.wscol.Predicate;
 import it.polimi.wscol.wscol.Step;
 import it.polimi.wscol.wscol.Values;
@@ -212,7 +212,7 @@ public class DataObjectImpl implements DataObject {
 							Object next = iter.next();
 							if (next instanceof DataObject) {
 								if (checkPredicate((DataObjectImpl) next, predicate)) {
-									list.add((DataObject) next);
+									list.add(next);
 								}
 							} else {
 								throw new Exception("Could not apply that predicate to element '" + property + "' of type '" + next.getClass().getSimpleName() + "'");
@@ -353,6 +353,7 @@ public class DataObjectImpl implements DataObject {
 	 * @return the collection of values that the key maps to
 	 * @see com.google.common.collect.AbstractSetMultimap#get(Object)
 	 */
+	@Override
 	public Set<Object> get(String property) {
 		return data.get(property);
 
@@ -367,6 +368,7 @@ public class DataObjectImpl implements DataObject {
 	 * @throws Exception
 	 *             if the index is out of bound
 	 */
+	@Override
 	public Object get(int index) throws Exception {
 		Object[] valuesArray = values().toArray();
 		if (index >= valuesArray.length) {
@@ -378,6 +380,7 @@ public class DataObjectImpl implements DataObject {
 	/**
 	 * Returns the size of the {@link DataObject} (the number of pairs key-value)
 	 */
+	@Override
 	public int size() {
 		return data.size();
 	}
@@ -387,6 +390,7 @@ public class DataObjectImpl implements DataObject {
 	 * 
 	 * @return value corresponding to the first key inserted in the {@link DataObject}
 	 */
+	@Override
 	public Object getFirstValue() {
 		return data.values().iterator().next();
 	}
@@ -394,6 +398,7 @@ public class DataObjectImpl implements DataObject {
 	/**
 	 * Return <code>true</code> if there is only a value in the {@link DataObject}
 	 */
+	@Override
 	public boolean isSingleValue() {
 		// a single value and not a DataObject (potentially containing other values)
 		return data.values().size() == 1 && !(this.getFirstValue() instanceof DataObject);
@@ -402,6 +407,7 @@ public class DataObjectImpl implements DataObject {
 	/**
 	 * Returns <code>true</code> if the {@link Multimap} contains no key-value pairs.
 	 */
+	@Override
 	public boolean isEmpty() {
 		return data.isEmpty();
 	}
@@ -413,6 +419,7 @@ public class DataObjectImpl implements DataObject {
 	 *            the {@link Object} to search (possible types are {@link String}, {@link Double} and {@link DataObject})
 	 * @return <code>true</code> if the target is found, <code>false</code> otherwise
 	 */
+	@Override
 	public boolean contains(Object target) {
 
 		// if target is a DataObject, for each value contained in the target we try to find it in the current DataObject
@@ -464,6 +471,7 @@ public class DataObjectImpl implements DataObject {
 	 * @return the collection of distinct keys
 	 * @see com.google.common.collect.AbstractSetMultimap#keySet()
 	 */
+	@Override
 	public Set<String> keySet() {
 		return data.keySet();
 	}
@@ -498,6 +506,7 @@ public class DataObjectImpl implements DataObject {
 	 * @return collection of values, which may include the same value multiple times if it occurs in multiple mappings
 	 * @see com.google.common.collect.AbstractSetMultimap#values()
 	 */
+	@Override
 	public Collection<Object> values() {
 		return data.values();
 	}

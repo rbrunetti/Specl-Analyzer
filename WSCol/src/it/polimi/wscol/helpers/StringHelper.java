@@ -1,4 +1,4 @@
-package it.polimi.wscol.Helpers;
+package it.polimi.wscol.helpers;
 
 import it.polimi.wscol.wscol.Assertion;
 import it.polimi.wscol.wscol.AssertionAnd;

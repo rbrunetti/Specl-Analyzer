@@ -1,10 +1,10 @@
 package it.polimi.wscol.declaration;
 
-import it.polimi.wscol.Helpers.FunctionHelper;
-import it.polimi.wscol.Helpers.StringHelper;
-import it.polimi.wscol.Helpers.VariablesHelper;
 import it.polimi.wscol.assertions.AssertionService;
 import it.polimi.wscol.dataobject.DataObject;
+import it.polimi.wscol.helpers.FunctionHelper;
+import it.polimi.wscol.helpers.StringHelper;
+import it.polimi.wscol.helpers.VariablesHelper;
 import it.polimi.wscol.wscol.AssertionQuantified;
 import it.polimi.wscol.wscol.Constant;
 import it.polimi.wscol.wscol.Declaration;

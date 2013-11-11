@@ -1,4 +1,4 @@
-package it.polimi.wscol.Helpers;
+package it.polimi.wscol.helpers;
 
 import java.util.HashMap;
 import java.util.Map;

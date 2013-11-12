@@ -41,7 +41,105 @@ WSCoL (Web Service Constraint Language) is a special-purpose assertion DSL for t
 
 <p>WSCoL could work in many other contexts: manipulation of data retrieved from a Rest service …</p>
 
-<p><a name="grammar"></a></p>
+<h2>
+<a name="table-of-content" class="anchor" href="#table-of-content"><span class="octicon octicon-link"></span></a>Table of Content</h2>
+
+<ul>
+<li><a href="#grammar">Grammar</a></li>
+<li>
+<a href="#features">Features</a>
+
+<ul>
+<li><a href="#declaration">Declaration</a></li>
+<li>
+<a href="#assertion">Assertions</a>
+
+<ul>
+<li><a href="#quantified-assertion--aggregated-functions">Quantified Assertion &amp; Aggregated Functions</a></li>
+<li><a href="#numeric-expression">Numeric Expression</a></li>
+<li><a href="#navigation-and-query">Navigation &amp; Query</a></li>
+<li>
+<a href="#field-types">Field Types</a>
+
+<ul>
+<li><a href="#sdo">SDO</a></li>
+<li><a href="#array">Array</a></li>
+<li><a href="#string">String</a></li>
+<li><a href="#double">Number</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#comments">Comments</a></li>
+<li><a href="#keyword">Keyword</a></li>
+<li><a href="#operators">Operators</a></li>
+</ul>
+</li>
+<li>
+<a href="#examples">Examples</a>
+
+<ul>
+<li>
+<a href="#toy-example-book-store">Toy Example - Book Store</a>
+
+<ul>
+<li><a href="#example_toy_1">First Assertion</a></li>
+<li>  <a href="#example_toy_2">Second Assertion</a>
+</li>
+<li><a href="#example_toy_3">Third Assertion</a></li>
+<li><a href="#example_toy_4">Fourth Assertion</a></li>
+<li><a href="#example_toy_5">Fifth Assertion</a></li>
+</ul>
+</li>
+<li>
+<a href="#example_handler">SOAP Handler</a>
+
+<ul>
+<li>
+<a href="#example_handler_server">Server Side</a>
+
+<ul>
+<li>
+<a href="#example_handler_server_setup">Setup</a>
+
+<ul>
+<li><a href="#example_handler_server_libs">Needed Libraries</a></li>
+<li><a href="#example_handler_server_install">Installation</a></li>
+</ul>
+</li>
+<li><a href="#example_handler_server_wsclient">WS</a></li>
+<li><a href="#example_handler_server_handler">Server SOAP Handler</a></li>
+<li><a href="#example_handler_server_handler_xml">Server SOAPHandler XML File</a></li>
+<li><a href="#example_handler_server_handler_attach">Attach Handler to BookstoreWS</a></li>
+<li><a href="#example_handler_server_proj_dir_struct">BookstoreWS Project Organization</a></li>
+<li><a href="#example_handler_sources">Source</a></li>
+</ul>
+</li>
+<li>
+<a href="#example_handler_client">Client Side</a>
+
+<ul>
+<li>
+<a href="#example_handler_client_setup">Setup</a>
+
+<ul>
+<li><a href="#example_handler_client_libs">Needed Libraries</a></li>
+<li><a href="#example_handler_client_install">Installation</a></li>
+</ul>
+</li>
+<li><a href="#example_handler_client_wsclient">WS Client</a></li>
+<li><a href="#example_handler_client_handler">Client SOAP Handler</a></li>
+<li><a href="#example_handler_client_handler_xml">Client SOAPHandler XML File</a></li>
+<li><a href="#example_handler_client_handler_attach">Attach Handler to BookstoreWS</a></li>
+<li><a href="#example_handler_client_proj_dir_struct">BookstoreWS Client Project Organization</a></li>
+<li><a href="#example_handler_sources">Source</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul><p><a name="grammar"></a></p>
 
 <h2>
 <a name="grammar" class="anchor" href="#grammar"><span class="octicon octicon-link"></span></a>Grammar</h2>
@@ -760,6 +858,7 @@ Methods are the following, the names are self-explanatory:</p>
 <li><code>getBooksByIsbnList(List&lt;String&gt;)</code></li>
 <li><code>getAllBooksTitle()</code></li>
 <li><code>getBooksNumberPerAuthor()</code></li>
+<li><code>getBooksByPublisherAndYearRange()</code></li>
 </ul><p><em>File: ServerInfo.java</em></p>
 
 <div class="highlight highlight-Java"><pre><span class="kn">package</span> <span class="n">it</span><span class="o">.</span><span class="na">polimi</span><span class="o">.</span><span class="na">bookstore</span><span class="o">.</span><span class="na">ws</span><span class="o">;</span>
@@ -788,6 +887,9 @@ Methods are the following, the names are self-explanatory:</p>
 
     <span class="nd">@WebMethod</span>
     <span class="kd">public</span> <span class="n">HashMapWrapper</span> <span class="nf">getBooksNumberPerAuthor</span><span class="o">();</span>
+
+    <span class="nd">@WebMethod</span>
+    <span class="kd">public</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">getBooksByPublisherAndYearRange</span><span class="o">(</span><span class="n">String</span> <span class="n">publisher</span><span class="o">,</span> <span class="kt">int</span> <span class="n">startYear</span><span class="o">,</span> <span class="kt">int</span> <span class="n">endYear</span><span class="o">);</span>
 
 <span class="o">}</span>
 </pre></div>
@@ -898,6 +1000,19 @@ Methods are the following, the names are self-explanatory:</p>
             <span class="o">}</span>
         <span class="o">}</span>
         <span class="k">return</span> <span class="k">new</span> <span class="nf">HashMapWrapper</span><span class="o">(</span><span class="n">authors</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">getBooksByPublisherAndYearRange</span><span class="o">(</span><span class="n">String</span> <span class="n">publisher</span><span class="o">,</span> <span class="kt">int</span> <span class="n">startYear</span><span class="o">,</span> <span class="kt">int</span> <span class="n">endYear</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span><span class="o">(</span><span class="n">books</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+            <span class="n">setup</span><span class="o">();</span>
+        <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">result</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
+        <span class="k">for</span><span class="o">(</span><span class="n">Book</span> <span class="nl">b:</span><span class="n">books</span><span class="o">.</span><span class="na">getBookstore</span><span class="o">())</span> <span class="o">{</span>
+            <span class="k">if</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getPublisher</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">publisher</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="n">b</span><span class="o">.</span><span class="na">getYear</span><span class="o">()</span> <span class="o">&gt;=</span> <span class="n">startYear</span> <span class="o">&amp;&amp;</span> <span class="n">b</span><span class="o">.</span><span class="na">getYear</span><span class="o">()</span> <span class="o">&lt;=</span> <span class="n">endYear</span><span class="o">){</span>
+                <span class="n">result</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getTitle</span><span class="o">());</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
     <span class="o">}</span>   
 <span class="o">}</span>
 </pre></div>
@@ -1113,6 +1228,18 @@ Methods are the following, the names are self-explanatory:</p>
     <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">WSCoLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
         <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Server could not respond due to validation errors in the server side SOAPHandler."</span><span class="o">);</span>
     <span class="o">}</span>
+<span class="o">}</span> <span class="k">else</span> <span class="k">if</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBooksByPublisherAndYearRange"</span><span class="o">))</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $publisher = /Envelope/Body/getBooksByPublisherAndYearRange/arg0;"</span>
+                                     <span class="o">+</span> <span class="s">"let $startYear = /Envelope/Body/getBooksByPublisherAndYearRange/arg1;"</span>
+                                     <span class="o">+</span> <span class="s">"let $endYear = /Envelope/Body/getBooksByPublisherAndYearRange/arg2;"</span>
+                                     <span class="o">+</span> <span class="s">"$publisher.cardinality() != 0 &amp;&amp; $startYear &gt; 1900 &amp;&amp; $endYear &lt;= 2013;"</span><span class="o">;</span>
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="k">if</span><span class="o">(!</span><span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">(</span><span class="n">assertion</span><span class="o">)){</span>
+            <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Passed arguments are wrong (incorrect year or empty publisher)"</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">WSCoLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Server could not respond due to validation errors in the server side SOAPHandler."</span><span class="o">);</span>
+    <span class="o">}</span>
 <span class="o">}</span> <span class="k">else</span> <span class="k">if</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getAllBooksTitle"</span><span class="o">)</span> <span class="o">||</span> <span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBooksNumberPerAuthor"</span><span class="o">)){</span>
     <span class="c1">// nothing to do here, no arguments</span>
 <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
@@ -1190,6 +1317,18 @@ Methods are the following, the names are self-explanatory:</p>
                     <span class="k">try</span> <span class="o">{</span>
                         <span class="k">if</span><span class="o">(!</span><span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">(</span><span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
                             <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Wrong ISBN format"</span><span class="o">);</span>
+                        <span class="o">}</span>
+                    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">WSCoLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Server could not respond due to validation errors in the server side SOAPHandler."</span><span class="o">);</span>
+                    <span class="o">}</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="k">if</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBooksByPublisherAndYearRange"</span><span class="o">))</span> <span class="o">{</span>
+                    <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $publisher = /Envelope/Body/getBooksByPublisherAndYearRange/arg0;"</span>
+                            <span class="o">+</span> <span class="s">"let $startYear = /Envelope/Body/getBooksByPublisherAndYearRange/arg1;"</span>
+                            <span class="o">+</span> <span class="s">"let $endYear = /Envelope/Body/getBooksByPublisherAndYearRange/arg2;"</span>
+                            <span class="o">+</span> <span class="s">"$publisher.cardinality() != 0 &amp;&amp; $startYear &gt; 1900 &amp;&amp; $endYear &lt;= 2013;"</span><span class="o">;</span>
+                    <span class="k">try</span> <span class="o">{</span>
+                        <span class="k">if</span><span class="o">(!</span><span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">(</span><span class="n">assertion</span><span class="o">)){</span>
+                            <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Passed arguments are wrong (incorrect year or empty publisher)"</span><span class="o">);</span>
                         <span class="o">}</span>
                     <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">WSCoLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
                         <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Server could not respond due to validation errors in the server side SOAPHandler."</span><span class="o">);</span>
@@ -1287,7 +1426,7 @@ Methods are the following, the names are self-explanatory:</p>
 
 <p>Here's the directory structure of the project</p>
 
-<p><img src="img/soap/01-DirStruct.png" alt="Directory Structure"></p>
+<p><img src="/img/soap/01-DirStruct.png" alt="Directory Structure"></p>
 
 <p><a name="example_handler_client"></a></p>
 
@@ -1552,7 +1691,7 @@ It intercepts the <code>getBooksNumberPerAuthorResponse</code> (that returns a M
 <a name="bookstorews-client-project-organization" class="anchor" href="#bookstorews-client-project-organization"><span class="octicon octicon-link"></span></a>BookstoreWS Client Project Organization</h3>
 
 <p>Here's the directory structure of the project
-<img src="img/soap/02-ClientDirStruct.png" alt="Client Directory Structure"></p>
+<img src="/img/soap/02-ClientDirStruct.png" alt="Client Directory Structure"></p>
 
 <p><a name="example_handler_sources"></a></p>
 

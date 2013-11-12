@@ -121,7 +121,7 @@ public class FunctionHelper {
 			if(params.size() == 1){
 				return ((String) object).contains((String)params.get(1));
 			} else {
-				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
+				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 0)");
 			}
 		case "concat":
 			if(params != null){
@@ -130,7 +130,13 @@ public class FunctionHelper {
 				}
 				return object;
 			} else {
-				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
+				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of n)");
+			}
+		case "cardinality":
+			if(params != null){
+				return (double)1;
+			} else {
+				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 0)");
 			}
 		default:
 			throw new Exception("Unsupported function '" + name + "' for a " + object.getClass().getSimpleName() + " (value: \"" + object + "\")");
@@ -185,6 +191,12 @@ public class FunctionHelper {
 				return String.valueOf((double) object);
 			} else {
 				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 2)");
+			}
+		case "cardinality":
+			if(params == null){
+				return (double)1;
+			} else {
+				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 0)");
 			}
 		default:
 			throw new Exception("Unsupported function '" + name + "' for a " + object.getClass().getSimpleName() + " (value: \"" + object + "\")");

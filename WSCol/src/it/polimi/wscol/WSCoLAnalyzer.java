@@ -80,7 +80,6 @@ public class WSCoLAnalyzer {
 	 */
 	public void setXMLInput(Document doc) {
 		input = new DataObjectImpl(doc);
-		input.equals("");
 	}
 	
 	/**

@@ -133,7 +133,7 @@ public class FunctionHelper {
 				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of n)");
 			}
 		case "cardinality":
-			if(params != null){
+			if(params == null){
 				return (double)1;
 			} else {
 				throw new Exception("Wrong number of parameters for function '" + name + "' (" + params.size() + " instead of 0)");

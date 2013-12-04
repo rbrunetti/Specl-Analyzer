@@ -48,26 +48,17 @@ Specl is a special-purpose assertion DSL for the expression of monitoring direct
 <h2>
 <a name="table-of-content" class="anchor" href="#table-of-content"><span class="octicon octicon-link"></span></a>Table of Content</h2>
 
-<ul>
-<li>
-<a href="#data-types">Data Types</a>
+<p>1 <a href="#data-types">Data Types</a>
+    1.1 <a href="#sdo">SDO</a>
+    1.2 <a href="#array">Array</a>
+    1.3 <a href="#string">String</a>
+    1.4 <a href="#double">Number</a>
+2 <a href="#lexical_elems">Other Lexical Elements</a>
+    2.1 <a href="#comments">Comments</a>
+    2.2 <a href="#keyword">Keyword</a>
+    2.3 <a href="#operators">Operators</a></p>
 
 <ul>
-<li><a href="#sdo">SDO</a></li>
-<li><a href="#array">Array</a></li>
-<li><a href="#string">String</a></li>
-<li><a href="#double">Number</a></li>
-</ul>
-</li>
-<li>
-<a href="#lexical_elems">Other Lexical Elements</a>
-
-<ul>
-<li><a href="#comments">Comments</a></li>
-<li><a href="#keyword">Keyword</a></li>
-<li><a href="#operators">Operators</a></li>
-</ul>
-</li>
 <li>
 <a href="#features">Features</a>
 
@@ -84,9 +75,9 @@ Specl is a special-purpose assertion DSL for the expression of monitoring direct
 </li>
 </ul>
 </li>
-<li><p><a href="#grammar">Grammar</a></p></li>
+<li><a href="#grammar">Grammar</a></li>
 <li>
-<p><a href="#examples">Examples</a></p>
+<a href="#examples">Examples</a>
 
 <ul>
 <li>
@@ -205,7 +196,7 @@ Specl is a special-purpose assertion DSL for the expression of monitoring direct
     <span class="nt">"elem1"</span><span class="p">:</span> <span class="s2">"String"</span><span class="p">,</span>
     <span class="nt">"elem2"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
     <span class="nt">"elem3"</span><span class="p">:</span> <span class="p">[</span>
-        <span class="mi">16</span><span class="s2">"A"</span><span class="p">,</span>
+        <span class="s2">"A"</span><span class="p">,</span>
         <span class="s2">"B"</span><span class="p">,</span>
         <span class="s2">"C"</span>
     <span class="p">],</span>
@@ -306,7 +297,7 @@ The following is the list of available functions (plus a short example for each 
 <a name="boolean-containsobject-elem-1" class="anchor" href="#boolean-containsobject-elem-1"><span class="octicon octicon-link"></span></a><strong>boolean contains(Object elem)</strong>
 </h5>
 
-<p>returns <em>true</em> if the passed elem object is contained</p>
+<p>returns <em>true</em> if the passed <code>elem</code> object is contained</p>
 
 <pre><code>// check if the second book is written by a certain author
 /inventory/book[2]/authors/author.contains("Larry Niven")
@@ -429,7 +420,7 @@ The following is the list of available functions (plus a short example for each 
 <a name="string-replacestring-target-string-replacement" class="anchor" href="#string-replacestring-target-string-replacement"><span class="octicon octicon-link"></span></a><strong>String replace(String target, String replacement)</strong>
 </h5>
 
-<p>replace every occurrence of target with replacement</p>
+<p>replace every occurrence of <code>target</code> with <code>replacement</code></p>
 
 <pre><code>// substitutes blank spaces with underscores, in first book’s title
 /inventory/book[1]/title.replace(" ", "_")
@@ -631,7 +622,7 @@ let $c = /step1[1];
 <li>
 <strong>value</strong>: is the value to store</li>
 <li>'<strong>;</strong>' : is the termination character</li>
-</ul><p>The <em>value</em> could be directly declared when it's a constant (a number, a string, a Boolean or an array - see <a href="#field_types">field types</a>), or it could be the result of an <a href="#assertion">assertion</a> (the value corresponding to a certain <a href="#nav_query">navigation path</a> or the result of an expression or a <a href="#quant_aggr_assertion">quantified assertion</a>).<br>
+</ul><p>The <em>value</em> could be directly declared when it's a constant (a number, a string, a Boolean or an array - see <a href="#data_types">data types</a>), or it could be the result of an <a href="#assertion">assertion</a> (the value corresponding to a certain <a href="#nav_query">navigation path</a> or the result of an expression or a <a href="#quant_aggr_assertion">quantified assertion</a>).<br>
 Here's some examples:</p>
 
 <pre><code>let $number = 10;
@@ -764,42 +755,42 @@ $price &gt;= 2;
 </tr></thead>
 <tbody>
 <tr>
-<td align="center"><code>forall</code></td>
+<td align="center">forall</td>
 <td align="center">Boolean</td>
 <td align="left">True if, for every element, the conditions are respected</td>
 </tr>
 <tr>
-<td align="center"><code>exists</code></td>
+<td align="center">exists</td>
 <td align="center">Boolean</td>
 <td align="left">True if, for at least one element, the conditions are respected</td>
 </tr>
 <tr>
-<td align="center"><code>numOf</code></td>
+<td align="center">numOf</td>
 <td align="center">Double</td>
 <td align="left">the number of elements that respects the conditions</td>
 </tr>
 <tr>
-<td align="center"><code>max</code></td>
+<td align="center">max</td>
 <td align="center">Double</td>
 <td align="left">Returns the maximum element that respects the conditions</td>
 </tr>
 <tr>
-<td align="center"><code>min</code></td>
+<td align="center">min</td>
 <td align="center">Double</td>
 <td align="left">Returns the minimum element that respects the conditions</td>
 </tr>
 <tr>
-<td align="center"><code>avg</code></td>
+<td align="center">avg</td>
 <td align="center">Double</td>
 <td align="left">Returns the average of the elements that respects the conditions</td>
 </tr>
 <tr>
-<td align="center"><code>sum</code></td>
+<td align="center">sum</td>
 <td align="center">Double</td>
 <td align="left">Returns the sum of elements that respects the conditions</td>
 </tr>
 <tr>
-<td align="center"><code>product</code></td>
+<td align="center">product</td>
 <td align="center">Double</td>
 <td align="left">Returns the product of elements that respects the conditions</td>
 </tr>
@@ -842,9 +833,14 @@ $price &gt;= 2;
 <span class="w">    </span><span class="no">Expression</span><span class="w"> </span><span class="no">Rop</span><span class="w"> </span><span class="no">Expression</span><span class="p">;</span><span class="w"></span>
 
 <span class="nl">Expression</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="no">Step</span><span class="o">+</span><span class="w"> </span><span class="o">(</span><span class="s">'.'</span><span class="w"> </span><span class="no">Function</span><span class="o">)*</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">NumericExpression</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">AssertionQuantified</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Array</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Boolean</span><span class="w"></span>
+<span class="w">    </span><span class="no">Step</span><span class="o">+</span><span class="w"> </span><span class="o">(</span><span class="s">'.'</span><span class="w"> </span><span class="no">Function</span><span class="o">)*</span><span class="w"> </span><span class="o">|</span><span class="w"></span>
+<span class="w">    </span><span class="no">NumericExpression</span><span class="w"> </span><span class="o">|</span><span class="w"> </span>
+<span class="w">    </span><span class="no">AssertionQuantified</span><span class="w"> </span><span class="o">|</span><span class="w"> </span>
+<span class="w">    </span><span class="no">Array</span><span class="w"> </span><span class="o">|</span><span class="w"> </span>
+<span class="w">    </span><span class="no">Boolean</span><span class="w"></span>
+<span class="p">;</span><span class="w"></span>
 
-<span class="no">Step</span><span class="p">:</span><span class="w"></span>
+<span class="nl">Step</span><span class="p">:</span><span class="w"></span>
 <span class="w">    </span><span class="s">'/'</span><span class="w"> </span><span class="no">ID</span><span class="w"> </span><span class="o">(</span><span class="s">'['</span><span class="w"> </span><span class="no">Predicate</span><span class="w"> </span><span class="s">']'</span><span class="o">)?</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Variable</span><span class="w"></span>
 
 <span class="no">Predicate</span><span class="p">:</span><span class="w"></span>

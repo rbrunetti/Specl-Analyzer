@@ -4,11 +4,11 @@
   <head>
     <meta charset='utf-8' />
     <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="WSCoL - Analyser : " />
+    <meta name="description" content="Specl - Analyser : An Assertion Language for Service Data Object" />
 
     <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
-    <title>WSCoL - Analyser</title>
+    <title>Specl - Analyser</title>
   </head>
 
   <body>
@@ -16,14 +16,14 @@
     <!-- HEADER -->
     <div id="header_wrap" class="outer">
         <header class="inner">
-          <a id="forkme_banner" href="https://github.com/rbrunetti/WSCoL-Analyser">View on GitHub</a>
+          <a id="forkme_banner" href="https://github.com/rbrunetti/Specl-Analyser">View on GitHub</a>
 
-          <h1 id="project_title">WSCoL - Analyser</h1>
-          <h2 id="project_tagline"></h2>
+          <h1 id="project_title">Specl - Analyser</h1>
+          <h2 id="project_tagline">An Assertion Language for Service Data Object</h2>
 
             <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/rbrunetti/WSCoL-Analyser/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/rbrunetti/WSCoL-Analyser/tarball/master">Download this project as a tar.gz file</a>
+              <a class="zip_download_link" href="https://github.com/rbrunetti/Specl-Analyser/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/rbrunetti/Specl-Analyser/tarball/master">Download this project as a tar.gz file</a>
             </section>
         </header>
     </div>
@@ -32,20 +32,42 @@
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
         <h1>
-<a name="wscol-language" class="anchor" href="#wscol-language"><span class="octicon octicon-link"></span></a>WSCoL Language</h1>
+<a name="specl-language" class="anchor" href="#specl-language"><span class="octicon octicon-link"></span></a>Specl Language</h1>
 
 <p><a name="top"></a>
-WSCoL (Web Service Constraint Language) is a special-purpose assertion DSL for the expression of monitoring directives and constraint.</p>
+Specl is a special-purpose assertion DSL for the expression of monitoring directives and constraint.</p>
 
-<p>WSCoL concentrates on both functional and non-functional properties, and is suitable to express general dependability properties such as safety, integrity, availability and reliability.</p>
+<p>Specl concentrates on both functional and non-functional properties, and is suitable to express general dependability properties such as safety, integrity, availability and reliability.</p>
 
-<p>WSCoL could work in many other contexts: manipulation of data retrieved from a Rest service …</p>
+<p>The main strength of this language is that it relies on the concept of Service Data Object (SDO). This gives the language a single consistent view of data obtained from a variety of sources, and takes Specl to a more high level of abstraction. Specl acquires power and flexibility thanks to SDOs, allowing it to be used in various different contexts.</p>
+
+<p>In this chapter, we will explain the language characteristics and features, decorating explanations with little examples (extracted and base on the work done in the <a href="#toy-example-book-store">BookStore Example</a> for a better understanding. It would be useful at least a basic knowledge of navigational path and XPath.</p>
+
+<p>The presentation will be done in a bottom-up fashion, from the data types to the whole grammar structure.</p>
 
 <h2>
 <a name="table-of-content" class="anchor" href="#table-of-content"><span class="octicon octicon-link"></span></a>Table of Content</h2>
 
 <ul>
-<li><a href="#grammar">Grammar</a></li>
+<li>
+<a href="#data-types">Data Types</a>
+
+<ul>
+<li><a href="#sdo">SDO</a></li>
+<li><a href="#array">Array</a></li>
+<li><a href="#string">String</a></li>
+<li><a href="#double">Number</a></li>
+</ul>
+</li>
+<li>
+<a href="#lexical_elems">Other Lexical Elements</a>
+
+<ul>
+<li><a href="#comments">Comments</a></li>
+<li><a href="#keyword">Keyword</a></li>
+<li><a href="#operators">Operators</a></li>
+</ul>
+</li>
 <li>
 <a href="#features">Features</a>
 
@@ -58,25 +80,13 @@ WSCoL (Web Service Constraint Language) is a special-purpose assertion DSL for t
 <li><a href="#quantified-assertion--aggregated-functions">Quantified Assertion &amp; Aggregated Functions</a></li>
 <li><a href="#numeric-expression">Numeric Expression</a></li>
 <li><a href="#navigation-and-query">Navigation &amp; Query</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a href="#grammar">Grammar</a></p></li>
 <li>
-<a href="#field-types">Field Types</a>
-
-<ul>
-<li><a href="#sdo">SDO</a></li>
-<li><a href="#array">Array</a></li>
-<li><a href="#string">String</a></li>
-<li><a href="#double">Number</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#comments">Comments</a></li>
-<li><a href="#keyword">Keyword</a></li>
-<li><a href="#operators">Operators</a></li>
-</ul>
-</li>
-<li>
-<a href="#examples">Examples</a>
+<p><a href="#examples">Examples</a></p>
 
 <ul>
 <li>
@@ -139,58 +149,399 @@ WSCoL (Web Service Constraint Language) is a special-purpose assertion DSL for t
 </li>
 </ul>
 </li>
-</ul><p><a name="grammar"></a></p>
+</ul><p><a name="data_types"></a></p>
 
 <h2>
-<a name="grammar" class="anchor" href="#grammar"><span class="octicon octicon-link"></span></a>Grammar</h2>
+<a name="data-types" class="anchor" href="#data-types"><span class="octicon octicon-link"></span></a>Data Types</h2>
 
-<p>The syntax is specified using Extended Backus-Naur Form (EBNF): </p>
+<p>The data types used inside the language are</p>
 
-<pre><code>Model:
-    Declaration* Assertions ';'
+<ul>
+<li>SDO</li>
+<li>Array</li>
+<li>String</li>
+<li>Double</li>
+<li>Boolean</li>
+</ul><p>Each of them as associated its own functions, that expands the power of the language and that could be easily upgraded and extended. SDO, as a containment object, could have values of each of the previously showed type, even another SDO.</p>
 
-Declaration:
-    'let' Variable 'in' Assertion ';'
+<p><a name="sdo"></a></p>
 
-Assertions:
-    PrimaryAssertions (('&amp;&amp;' | '||') PrimaryAssertions )*
+<h3>
+<a name="sdo" class="anchor" href="#sdo"><span class="octicon octicon-link"></span></a>SDO</h3>
 
-PrimaryAssertions:
-    '(' Assertions ')' | '!(' Assertions ')' | Assertion
+<p>SDO was born for simplify and unify Service Oriented Architecture (SOA) data access and code, i.e. its purpose is to facilitate communication and, for this reason, are designed to deliver a uniform data access layer for heterogeneous data sources in a service-oriented architecture. Provides flexible data structures that allow data to be organized as graphs of objects (called <em>data object</em>) that are composed of <em>properties</em>. Properties can be single or many valued and can have other data objects as their values.</p>
 
-Assertion:
-    Expression Rop Expression;
+<h4>
+<a name="mapping-examples" class="anchor" href="#mapping-examples"><span class="octicon octicon-link"></span></a>Mapping Examples</h4>
 
-Expression:
-    Step+ ('.' Function)* | NumericExpression | AssertionQuantified | Array | Boolean
+<p>The Specl interpreter, provided as final result of this thesis, gives the possibility to translate XML documents and JSON objects to SDO. Furthermore, thanks to the generality and abstraction of SDOs, developers could build their own translator for any type of data.</p>
 
-Step:
-    '/' ID ('[' Predicate ']')? | Variable
+<p>For example, starting from the next XML and JSON code could be obtained a simple SDO.</p>
 
-Predicate:
-    ID Rop (STRING|NUMBER|Variable) | NUMBER | Variable
+<div class="highlight highlight-XML"><pre><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="nt">&lt;container&gt;</span>
+    <span class="nt">&lt;elem1&gt;</span>String<span class="nt">&lt;/elem1&gt;</span>
+    <span class="nt">&lt;elem2&gt;</span>1<span class="nt">&lt;/elem2&gt;</span>
+    <span class="nt">&lt;elem3&gt;</span>A<span class="nt">&lt;/elem3&gt;</span>
+    <span class="nt">&lt;elem3&gt;</span>B<span class="nt">&lt;/elem3&gt;</span>
+    <span class="nt">&lt;elem3&gt;</span>C<span class="nt">&lt;/elem3&gt;</span>
+    <span class="nt">&lt;elem4&gt;</span>true<span class="nt">&lt;/elem4&gt;</span>
+    <span class="nt">&lt;elem5&gt;</span>
+        <span class="nt">&lt;sub-elem1&gt;</span>String<span class="nt">&lt;/sub-elem1&gt;</span>
+        <span class="nt">&lt;sub-elem2&gt;</span>
+            <span class="nt">&lt;sub-sub-elem1&gt;</span>10<span class="nt">&lt;/sub-sub-elem1&gt;</span>
+        <span class="nt">&lt;/sub-elem2&gt;</span>
+        <span class="nt">&lt;sub-elem3&gt;</span>1<span class="nt">&lt;/sub-elem3&gt;</span>
+        <span class="nt">&lt;sub-elem3&gt;</span>2<span class="nt">&lt;/sub-elem3&gt;</span>
+    <span class="nt">&lt;/elem5&gt;</span>
+<span class="nt">&lt;/container&gt;</span>
+</pre></div>
 
-Function:
-    ID '(' (Values)? ')'
+<div class="highlight highlight-JSON"><pre><span class="p">{</span>
+    <span class="nt">"elem1"</span><span class="p">:</span> <span class="s2">"String"</span><span class="p">,</span>
+    <span class="nt">"elem2"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="nt">"elem3"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mi">16</span><span class="s2">"A"</span><span class="p">,</span>
+        <span class="s2">"B"</span><span class="p">,</span>
+        <span class="s2">"C"</span>
+    <span class="p">],</span>
+    <span class="nt">"elem4"</span><span class="p">:</span> <span class="s2">"true"</span><span class="p">,</span>
+    <span class="nt">"elem5"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">"sub-elem1"</span><span class="p">:</span> <span class="s2">"String"</span><span class="p">,</span>
+        <span class="nt">"sub-elem2"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">"10"</span>
+        <span class="p">],</span>
+        <span class="nt">"sub-elem3"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">"1"</span><span class="p">,</span>
+            <span class="s2">"2"</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
 
-AssertionQuantified:
-    Quantifier '(' Variable 'in' Variable, Assertions ')'
+<p>Here is the structure of the SDO derived from the previous languages:</p>
 
-Variable:
-    '$' ID
-
-Rop:
-    '==' | '!=' | '&gt;' | '&gt;=' | '&lt;' | '&lt;='
+<pre><code>{
+    container = {
+        elem1 = "String",
+        elem2 = 1,
+        elem3 = ["A", "B", "C"],
+        elem4 = true,
+        elem5 = {
+            sub-elem1 = "String",
+            sub-elem2 = {
+                sub-sub-elem1 = 10
+            },
+            sub-elem3 = [1, 2]
+        }
+    }
+}
 </code></pre>
 
-<p>Productions with first capital letter are refers to rules, uppercase productions are terminals.</p>
+<p>As you can see, the representation is pretty similar to JSON: sets of key-value entry and ordered lists of values.</p>
+
+<h4>
+<a name="functions" class="anchor" href="#functions"><span class="octicon octicon-link"></span></a>Functions</h4>
+
+<p>SDO’s functions let the designer to operate both on the whole object and on the elements included into it (could be checked the presence of a certain property or get its value).
+The following is the list of available functions (plus a short example for each one):</p>
+
+<h5>
+<a name="boolean-containsobject-elem-returns-true-if-the-object-is-contained-the-research--is-deep" class="anchor" href="#boolean-containsobject-elem-returns-true-if-the-object-is-contained-the-research--is-deep"><span class="octicon octicon-link"></span></a><strong>boolean contains(Object elem)</strong>: returns <em>true</em> if the object is contained (the research  is deep)</h5>
+
+<p>returns true if an object with elem value is contained (the research is deep)</p>
+
+<pre><code>// search "Pocket" string in the first book of the inventory
+/inventory/book[1].contains("Pocket")
+</code></pre>
+
+<h5>
+<a name="object-getint-index-returns-the-value-of-the-index-th-node-the-first-has-index--1" class="anchor" href="#object-getint-index-returns-the-value-of-the-index-th-node-the-first-has-index--1"><span class="octicon octicon-link"></span></a><strong>Object get(int index)</strong>: returns the value of the <em>index</em>-th node (the first has index = 1)</h5>
+
+<p>returns the value of the index-th node (the first element of the array has index equals to 1)</p>
+
+<pre><code>// returns the first book of the inventory
+/inventory.get(1)
+</code></pre>
+
+<h5>
+<a name="object-getstring-node-returns-the-value-of-the-node-with-name-node" class="anchor" href="#object-getstring-node-returns-the-value-of-the-node-with-name-node"><span class="octicon octicon-link"></span></a><strong>Object get(String node)</strong>: returns the value of the node with name <em>node</em>
+</h5>
+
+<p>returns the value of the node with name node</p>
+
+<pre><code>// get the value of the key "name"
+/inventory.get("name")
+</code></pre>
+
+<h5>
+<a name="double-cardinality-returns-the-number-of-values-contained" class="anchor" href="#double-cardinality-returns-the-number-of-values-contained"><span class="octicon octicon-link"></span></a><strong>double cardinality()</strong>: returns the number of values contained</h5>
+
+<p>returns the number of elements contained</p>
+
+<pre><code>// get the number of values contained
+/inventory.cardinality();
+</code></pre>
+
+<p><a name="array"></a></p>
+
+<h3>
+<a name="array" class="anchor" href="#array"><span class="octicon octicon-link"></span></a>Array</h3>
+
+<p>The used type coincide with the classical kind of array, containing a finite number of elements. It is defined writing the elements of it inside square brackets and separated by commas (<code>[elem1, elem2, ...]</code>).</p>
+
+<h4>
+<a name="functions-1" class="anchor" href="#functions-1"><span class="octicon octicon-link"></span></a>Functions</h4>
+
+<p>Available functions for arrays covers the basic general-purpose language functions for this kind of data type, working on elements or getting the size of the array:</p>
+
+<h5>
+<a name="boolean-containsobject-elem-returns-true-if-the-object-is-contained" class="anchor" href="#boolean-containsobject-elem-returns-true-if-the-object-is-contained"><span class="octicon octicon-link"></span></a><strong>boolean contains(Object elem)</strong>: returns <em>true</em> if the object is contained</h5>
+
+<p>returns <em>true</em> if the passed elem object is contained</p>
+
+<pre><code>// check if the second book is written by a certain author
+/inventory/book[2]/authors/author.contains("Larry Niven")
+</code></pre>
+
+<h5>
+<a name="object-getint-index-returns-the-index-th-element" class="anchor" href="#object-getint-index-returns-the-index-th-element"><span class="octicon octicon-link"></span></a><strong>Object get(int index)</strong>: returns the <em>index</em>-th element</h5>
+
+<p>returns the <code>index</code>-th element of the array</p>
+
+<pre><code>// get the second author from an array of authors,
+// from the second book
+/inventory/book[2]/authors/author.get(2)
+</code></pre>
+
+<h5>
+<a name="double-cardinality-returns-the-length-of-the-array" class="anchor" href="#double-cardinality-returns-the-length-of-the-array"><span class="octicon octicon-link"></span></a><strong>double cardinality()</strong>: returns the length of the array</h5>
+
+<p>returns the length of the array</p>
+
+<pre><code>// get the length of the authors array of the second book
+/inventory/book[2]/authors/author.cardinality()
+</code></pre>
+
+<p><a name="string"></a></p>
+
+<h4>
+<a name="string" class="anchor" href="#string"><span class="octicon octicon-link"></span></a>String</h4>
+
+<p>Represents a string constant obtained from a sequence of characters. Everything inside quotes is considered as string (double or single quote: <code>"..."</code> or <code>’...’</code>).</p>
+
+<h5>
+<a name="functions-2" class="anchor" href="#functions-2"><span class="octicon octicon-link"></span></a>Functions</h5>
+
+<p>Even in this case, the functions are simple and common in many other contexts:</p>
+
+<h5>
+<a name="string-uppercase-turns-every-character-to-uppercase" class="anchor" href="#string-uppercase-turns-every-character-to-uppercase"><span class="octicon octicon-link"></span></a><strong>String uppercase()</strong>: turns every character to uppercase</h5>
+
+<p>turns every character to uppercase</p>
+
+<pre><code>// inventory’s name to uppercase
+/inventory/name.uppercase()
+</code></pre>
+
+<h5>
+<a name="string-lowecase-turns-every-character-to-lowercase" class="anchor" href="#string-lowecase-turns-every-character-to-lowercase"><span class="octicon octicon-link"></span></a><strong>String lowecase()</strong>: turns every character to lowercase</h5>
+
+<p>turns every character to lowercase</p>
+
+<pre><code>// inventory’s name to lowercase
+/inventory/name.lowercase()
+</code></pre>
+
+<h5>
+<a name="double-length-returns-the-length-of-the-string" class="anchor" href="#double-length-returns-the-length-of-the-string"><span class="octicon octicon-link"></span></a><strong>double length()</strong>: returns the length of the string</h5>
+
+<p>returns the length of the string</p>
+
+<pre><code>// inventory’s name length
+/inventory/name.length()
+</code></pre>
+
+<h5>
+<a name="boolean-startswithstring-prefix-returns-true-if-the-string-starts-with-prefix" class="anchor" href="#boolean-startswithstring-prefix-returns-true-if-the-string-starts-with-prefix"><span class="octicon octicon-link"></span></a><strong>boolean startsWith(String prefix)</strong>: returns <em>true</em> if the string starts with <em>prefix</em>
+</h5>
+
+<p>returns <em>true</em> if the string starts with <code>prefix</code></p>
+
+<pre><code>// check inventory’s name prefix
+/inventory/name.startsWith("Inv")
+</code></pre>
+
+<h5>
+<a name="boolean-endswithstring-suffix-returns-true-if-the-string-ends-with-prefix" class="anchor" href="#boolean-endswithstring-suffix-returns-true-if-the-string-ends-with-prefix"><span class="octicon octicon-link"></span></a><strong>boolean endsWith(String suffix)</strong>: returns <em>true</em> if the string ends with <em>prefix</em>
+</h5>
+
+<p>returns <em>true</em> if the string ends with <code>suffix</code></p>
+
+<pre><code>// check inventory’s name suffix
+/inventory/name.endsWith("YZ")
+</code></pre>
+
+<h5>
+<a name="boolean-containsstring-s-returns-true-if-the-string-contains-s" class="anchor" href="#boolean-containsstring-s-returns-true-if-the-string-contains-s"><span class="octicon octicon-link"></span></a><strong>boolean contains(String s)</strong>: returns <em>true</em> if the string contains <em>s</em>
+</h5>
+
+<p>returns <em>true</em> if the string contains <code>s</code></p>
+
+<pre><code>// check if inventory’s name contains "ABC"
+/inventory/name.contains("ABC")
+</code></pre>
+
+<h5>
+<a name="string-concatstring-s1-string-s2--returns-string-with-concatenated-s1-s2-etc" class="anchor" href="#string-concatstring-s1-string-s2--returns-string-with-concatenated-s1-s2-etc"><span class="octicon octicon-link"></span></a><strong>String concat(String s1, String s2, ...)</strong>: returns String with concatenated <em>s1</em>, <em>s2</em>, etc...</h5>
+
+<p>returns the concatenation of the string with <code>s1</code>, <code>s2</code>, etc...</p>
+
+<pre><code>// concatenate two strings to the title of the first book
+/inventory/book[1]/title.concat("is", "the 1st Book")
+</code></pre>
+
+<h5>
+<a name="string-substringint-beginindex-int-endindex-returns-the-substring-from-beginindex-to-endindex" class="anchor" href="#string-substringint-beginindex-int-endindex-returns-the-substring-from-beginindex-to-endindex"><span class="octicon octicon-link"></span></a><strong>String substring(int beginIndex, int endIndex)</strong>: returns the substring from <em>beginIndex</em> to <em>endIndex</em>
+</h5>
+
+<p>extracts the characters, between two specified indexes, and returns the new substring</p>
+
+<pre><code>// substring of the first book’s title
+/inventory/book[1]/title.substring(0, 2)
+</code></pre>
+
+<h5>
+<a name="string-replacestring-target-string-replacement-replace-every-occurrence-of-target-with-replacement" class="anchor" href="#string-replacestring-target-string-replacement-replace-every-occurrence-of-target-with-replacement"><span class="octicon octicon-link"></span></a><strong>String replace(String target, String replacement)</strong>: replace every occurrence of <em>target</em> with <em>replacement</em>
+</h5>
+
+<p>replace every occurrence of target with replacement</p>
+
+<pre><code>// substitutes blank spaces with underscores, in first book’s title
+/inventory/book[1]/title.replace(" ", "_")
+</code></pre>
+
+<p><a name="double"></a></p>
+
+<h3>
+<a name="double" class="anchor" href="#double"><span class="octicon octicon-link"></span></a>Double</h3>
+
+<p>The general representation of every number, which are parsed and used as a signed double.</p>
+
+<h4>
+<a name="functions-3" class="anchor" href="#functions-3"><span class="octicon octicon-link"></span></a>Functions</h4>
+
+<p>For numbers, the available functions can be used for manipulations and rounding. The list is a subset of the functions offered by XPath.</p>
+
+<h5>
+<a name="double-abs-apply-abs-to-the-number" class="anchor" href="#double-abs-apply-abs-to-the-number"><span class="octicon octicon-link"></span></a><strong>double abs()</strong>: apply <em>abs</em> to the number</h5>
+
+<p>gives the absolute value of the number on which it is applied</p>
+
+<pre><code>// suppose variable $a is defined equals to -1
+$a.abs() // result is 1.0
+</code></pre>
+
+<h5>
+<a name="double-ceiling-returns-the-smallest-integer-that-is-greater-than-the-number-argument" class="anchor" href="#double-ceiling-returns-the-smallest-integer-that-is-greater-than-the-number-argument"><span class="octicon octicon-link"></span></a><strong>double ceiling()</strong>: returns the smallest integer that is greater than the number argument</h5>
+
+<p>returns the smallest integer that is greater than the number argument</p>
+
+<pre><code>// ceiling of the first book’s price (suppose 9.9)
+/inventory/book[1]/price.ceiling() // result is 10.0
+</code></pre>
+
+<h5>
+<a name="double-floor-returns-the-largest-integer-that-is-not-greater-than-the-number-argument" class="anchor" href="#double-floor-returns-the-largest-integer-that-is-not-greater-than-the-number-argument"><span class="octicon octicon-link"></span></a><strong>double floor()</strong>: returns the largest integer that is not greater than the number argument</h5>
+
+<p>returns the largest integer that is not greater than the number argument</p>
+
+<pre><code>// floor of the first book’s price (suppose 9.9)
+/inventory/book[1]/price.floor() // result is 9.0
+</code></pre>
+
+<h5>
+<a name="double-round-rounds-the-number-argument-to-the-nearest-integer" class="anchor" href="#double-round-rounds-the-number-argument-to-the-nearest-integer"><span class="octicon octicon-link"></span></a><strong>double round()</strong>: rounds the number argument to the nearest integer</h5>
+
+<p>rounds the number argument to the nearest integer</p>
+
+<pre><code>// rounded price of the first book (suppose 9.9)
+/inventory/book[1]/price.round() // result is 10.0
+</code></pre>
+
+<h5>
+<a name="double-roundhalftoeven-rounds-a-number-with-5-fraction-to-the-nearest-even-integer" class="anchor" href="#double-roundhalftoeven-rounds-a-number-with-5-fraction-to-the-nearest-even-integer"><span class="octicon octicon-link"></span></a><strong>double roundHalfToEven()</strong>: rounds a number with .5 fraction to the nearest even integer</h5>
+
+<p>rounds a number with .5 fraction to the nearest even integer</p>
+
+<pre><code>// rounded price of the first book (suppose 9.5)
+/inventory/book[1]/price.roundHalfToEven() // result is 10.0
+</code></pre>
+
+<h5>
+<a name="string-tostring-returns-the-string-representation-of-the-number" class="anchor" href="#string-tostring-returns-the-string-representation-of-the-number"><span class="octicon octicon-link"></span></a><strong>String toString()</strong>: returns the string representation of the number</h5>
+
+<p>returns the string representation of the number</p>
+
+<pre><code>// string representation of the first book’s price
+/inventory/book[1]/price.toString() // result "15.0"
+</code></pre>
+
+<p><a name="lexical_elems"></a></p>
+
+<h3>
+<a name="other-lexical-elements" class="anchor" href="#other-lexical-elements"><span class="octicon octicon-link"></span></a>Other Lexical Elements</h3>
+
+<p><a name="comments"></a></p>
+
+<h3>
+<a name="comments" class="anchor" href="#comments"><span class="octicon octicon-link"></span></a>Comments</h3>
+
+<p>There are two type of <em>comments</em>:</p>
+
+<ul>
+<li>
+<strong>Line Comments</strong> start with the sequence <code>//</code> and stop at the end of line</li>
+<li>
+<strong>General Comments</strong> start with the sequence <code>/*</code> and continue until character sequence <code>*/</code>, it could contain more than one line</li>
+</ul><p>Comments do not nest.</p>
+
+<p><a name="keyword"></a></p>
+
+<h3>
+<a name="keyword" class="anchor" href="#keyword"><span class="octicon octicon-link"></span></a>Keyword</h3>
+
+<p>The following keywords are reserved and may not be used as identifiers</p>
+
+<pre><code>let       max       startsWith
+in        min       endsWith
+forall    sum       contains
+exists    avg
+numOf     product
+</code></pre>
+
+<p><a name="operators"></a></p>
+
+<h3>
+<a name="operators" class="anchor" href="#operators"><span class="octicon octicon-link"></span></a>Operators</h3>
+
+<p>The following character sequences represent operators, delimiters, and other special tokens:</p>
+
+<pre><code>==    +    &amp;&amp;    ,    (  )
+!=    -    ||    ;    [  ]
+&gt;     *    !     .
+&lt;     /
+&gt;=    %
+&lt;=
+=
+</code></pre>
 
 <p><a name="features"></a></p>
 
 <h2>
 <a name="features" class="anchor" href="#features"><span class="octicon octicon-link"></span></a>Features</h2>
 
-<p>WSCoL structure present two main part: declaration part and assertions part.</p>
+<p>Specl structure present two main part: declaration part and assertions part.</p>
 
 <p><em>Declarations part</em> has the purpose to let the user define variables that could be  used later for making assertions. The use of variables is not mandatory for the grammar, but is useful for simpler and clearer usage of the language.</p>
 
@@ -198,13 +549,53 @@ Rop:
 Assertions are composed by using logical operators: NOT (<code>!</code>), AND (<code>&amp;&amp;</code>), OR (<code>||</code>). These have the usual priority: NOT &gt; AND &gt; OR. With brackets for change the priority, depending on the user's needs.<br>
 Each <a href="#assertion"><em>assertion</em></a> consist of a comparison, using various operators, between two expressions.</p>
 
+<p><a name="nav_query"></a></p>
+
+<h3>
+<a name="navigation-and-query" class="anchor" href="#navigation-and-query"><span class="octicon octicon-link"></span></a>Navigation and query</h3>
+
+<p>At first, we will discuss about one of the basic functionality of the language: navigation path expressions and query. Those let the user querying and retrieving data values from an SDO using a notation inspired by <a href="http://www.w3.org/TR/xpath" target="_blank">XPath</a>.</p>
+
+<p>The queries are built by steps, separated by a slash (<code>/</code>): at each step, the specified element (conforming to a key property in the SDO) is selected and the corresponding value is returned.</p>
+
+<p>As in XPath, there are predicates used to restrict the node-set by selecting only those nodes for which a specified condition is true; acceptable predicates enable the selection of a node by its value or by its position:</p>
+
+<pre><code>// select the 'step1' whose 'step2' is greater or equal than 1
+let $a = /step1[step2 &gt;= 1];
+
+// select the 'step1' whose 'step3' is equal to "String"
+let $b = /step1[step3 == ”String”];
+
+// select the first of the 'step1' nodes
+let $c = /step1[1];
+</code></pre>
+
+<p>The form in the first two cases is</p>
+
+<blockquote>
+<p>[ <em>node</em> op <em>value</em> ]</p>
+</blockquote>
+
+<p>Where</p>
+
+<ul>
+<li>
+<strong>node</strong>: the name of the node to test</li>
+<li>
+<strong>op</strong>: the operation to apply (note that only <code>==</code> and <code>!=</code> has sense when <em>value</em> is a String)</li>
+<li>
+<strong>value</strong>: the value to compare, could be a String, a number or a <em>Variable</em>
+</li>
+</ul><p>In the last example, the parentheses contain just a number, that number refers to the index of the item to select.</p>
+
 <p><a name="declaration"></a></p>
 
 <h3>
 <a name="declaration" class="anchor" href="#declaration"><span class="octicon octicon-link"></span></a>Declaration</h3>
 
-<p>Allows to assign a value to a variable.<br>
-Syntax:</p>
+<p>Allows you to assign a value to a variable. This variable can then be used almost anywhere in the code that follows it, and there can no longer be assigned a different value.</p>
+
+<p>Declaration syntax:</p>
 
 <blockquote>
 <p>let <em>$var</em> = <em>value</em> ;</p>
@@ -236,9 +627,10 @@ let $quantified_assertion = numOf($elem in $array, $elem &gt; 1); // result is 2
 <h3>
 <a name="assertion" class="anchor" href="#assertion"><span class="octicon octicon-link"></span></a>Assertion</h3>
 
-<p>With the term <em>assertion</em> we intend true-false statement achieved with a comparison between expressions.
-The comparison can be made with the use of operations like equal (<code>==</code>), unequal (<code>!=</code>), greater (<code>&gt;</code>), lower (<code>&lt;</code>), greater or equal (<code>&gt;=</code>) and lower or equal (<code>&lt;=</code>).<br>
-Each operation as sense with respect to the expressions type:</p>
+<p>With the term <em>assertion</em> we intend <em>true/false</em> statement achieved with a comparison between expressions.
+The comparison can be made with the use of operations like equal (<code>==</code>), unequal (<code>!=</code>), greater (<code>&gt;</code>), lower (<code>&lt;</code>), greater or equal (<code>&gt;=</code>) and lower or equal (<code>&lt;=</code>).<br></p>
+
+<p>Each operation has sense with respect to the expressions type. The numeric assertions are the only ones that has access to the whole set of operands. In the next table, for each data type, are shown available operations and explained particular cases (see boolean expressions):</p>
 
 <table>
 <thead><tr>
@@ -310,7 +702,15 @@ Each operation as sense with respect to the expressions type:</p>
 <li>quantified assertion (see <a href="#quant_aggr_assertion">Quantified Assertion &amp; Aggregated Functions</a>)</li>
 <li>numeric expression (see <a href="#num_expr">Numeric Expression</a>)</li>
 <li>variable</li>
-</ul><p><a name="quant_aggr_assertion"></a></p>
+</ul><p>Examples of few possible statements composition</p>
+
+<pre><code>// query == string constant
+/inventory/name == "InventoryABCD";
+// variable &gt;= numeric constant
+$price &gt;= 2;
+</code></pre>
+
+<p><a name="quant_aggr_assertion"></a></p>
 
 <h4>
 <a name="quantified-assertion--aggregated-functions" class="anchor" href="#quantified-assertion--aggregated-functions"><span class="octicon octicon-link"></span></a>Quantified Assertion &amp; Aggregated Functions</h4>
@@ -389,1323 +789,68 @@ Each operation as sense with respect to the expressions type:</p>
 <h4>
 <a name="numeric-expression" class="anchor" href="#numeric-expression"><span class="octicon octicon-link"></span></a>Numeric Expression</h4>
 
-<p>Use and evaluate expressions, using the canonical operands: sum (+), subtraction (-), multiplication (*), division (/) and modulo (%). The priorities between these operators is exactly as they are listed before, and, as usual, precedence could be modified with brackets. Expressions can also be calculated using navigation path and variables, as long as they return numeric values.</p>
+<p>Use and evaluate expressions, using the canonical operands: sum (<code>+</code>), subtraction (<code>-</code>), multiplication (<code>*</code>), division (<code>/</code>) and modulo (<code>%</code>). Expressions has left associativity, and priorities between these operators is exactly as they are listed before (<code>%</code>, <code>/</code> and <code>*</code> has greater priority than <code>+</code> and <code>-</code>). As usual, precedence could be modified with brackets.</p>
 
-<p><a name="nav_query"></a></p>
+<p>Expressions can also be calculated using navigation path and variables, as long as they return numeric values.</p>
 
-<h3>
-<a name="navigation-and-query" class="anchor" href="#navigation-and-query"><span class="octicon octicon-link"></span></a>Navigation and query</h3>
+<p>Example:</p>
 
-<p>Let the user querying and retrieving values from an SDO using a notation inspired by <a href="http://www.w3.org/TR/xpath" target="_blank">XPath</a>.<br>
-The queries are build by <em>steps</em> separated by a slash <code>/</code>, at each step the specified element is selected and the corresponding value is returned.<br>
-As in XPath, there are <em>predicates</em> used to restrict the node-set by selecting only those nodes for which a specified condition is true; acceptable predicates enable the selection of a node by its value or by its position:</p>
-
-<pre><code>// select the 'step1' whose 'step2' is greater or equal than 1
-let $a = /step1[step2 &gt;= 1];
-
-// select the 'step1' whose 'step3' is equal to "String"
-let $b = /step1[step3 == ”String”];
-
-// select the first of the 'step1' nodes
-let $c = /step1[1];
+<pre><code>// a simple expression using sum, multiplication and modulo
+(1 + 1) * 1 % 1 == 0;
 </code></pre>
 
-<p>The form in the first two cases is</p>
-
-<blockquote>
-<p>[ <em>node</em> op <em>value</em> ]</p>
-</blockquote>
-
-<p>Where</p>
-
-<ul>
-<li>
-<strong>node</strong>: the name of the node to test</li>
-<li>
-<strong>op</strong>: the operation to apply (note that only <code>==</code> and <code>!=</code> has sense when <em>value</em> is a String)</li>
-<li>
-<strong>value</strong>: the value to compare, could be a String, a number or a <em>Variable</em>
-</li>
-</ul><p><a name="field_types"></a></p>
-
-<h3>
-<a name="field-types" class="anchor" href="#field-types"><span class="octicon octicon-link"></span></a>Field Types</h3>
-
-<p>The data types used inside the language are</p>
-
-<ul>
-<li>SDO</li>
-<li>Array</li>
-<li>String</li>
-<li>Double</li>
-<li>Boolean</li>
-</ul><p>Each of them as associated it's own functions, they are going to explained with the corresponding data type.</p>
-
-<p><a name="sdo"></a></p>
-
-<h4>
-<a name="sdo" class="anchor" href="#sdo"><span class="octicon octicon-link"></span></a>SDO</h4>
-
-<p>Service Data Objects use a data structure whose purpose is to facilitate communication.<br> The structure is tree-based with a root node and use the briefly explained <a href="#nav_query">traversal mechanisms</a> that allow client programs to navigate the elements.<br>
-Objects are dynamic with a map-like structure allowing also the nesting of other SDO.</p>
-
-<p>The application parse XML and JSON to SDO, and use it for elaboration.</p>
-
-<p>Here's the structure of a fictitious object:</p>
-
-<pre><code>{
-    elem1 = "String",
-    elem2 = 1,
-    elem3 = ["A", "B", "C"],
-    elem4 = true,
-    elem5 = {
-                sub-elem1 = "String",
-                sub-elem2 = {
-                                sub-sub-elem1 = 10
-                            },
-                sub-elem3 = [1, 2]
-            }
-}
-</code></pre>
-
-<p>The <code>elem</code> elements are in the first level, then <code>elem5</code> (that is an SDO) has other sub-elements and so on...</p>
-
-<h5>
-<a name="functions" class="anchor" href="#functions"><span class="octicon octicon-link"></span></a>Functions</h5>
-
-<ul>
-<li>
-<strong>contains(Object elem)</strong>: returns <em>true</em> if the object is contained (the research  is deep)</li>
-<li>
-<strong>get(int index)</strong>: returns the value of the <em>index</em>-th node (the first has index = 1)</li>
-<li>
-<strong>get(String node)</strong>: returns the value of the node with name <em>node</em>
-</li>
-<li>
-<strong>cardinality()</strong>: returns the number of values contained</li>
-</ul><p><a name="array"></a></p>
-
-<h4>
-<a name="array" class="anchor" href="#array"><span class="octicon octicon-link"></span></a>Array</h4>
-
-<p>The classical kind of array, containing a finite number of elements.<br>
-It is defined writing the elements of it inside square brackets <code>[ ... ]</code></p>
-
-<h5>
-<a name="functions-1" class="anchor" href="#functions-1"><span class="octicon octicon-link"></span></a>Functions</h5>
-
-<ul>
-<li>
-<strong>contains(Object elem)</strong>: returns <em>true</em> if the object is contained</li>
-<li>
-<strong>get(int index)</strong>: returns the <em>index</em>-th element</li>
-<li>
-<strong>cardinality()</strong>: returns the length of the array</li>
-</ul><p><a name="string"></a></p>
-
-<h4>
-<a name="string" class="anchor" href="#string"><span class="octicon octicon-link"></span></a>String</h4>
-
-<p>Is considered as string everything inside quotes <code>"..."</code></p>
-
-<h5>
-<a name="functions-2" class="anchor" href="#functions-2"><span class="octicon octicon-link"></span></a>Functions</h5>
-
-<ul>
-<li>
-<strong>uppercase()</strong>: turns every character to uppercase</li>
-<li>
-<strong>lowecase()</strong>: turns every character to lowercase</li>
-<li>
-<strong>length()</strong>: returns the length of the string</li>
-<li>
-<strong>startsWith(String prefix)</strong>: returns <em>true</em> if the string starts with <em>prefix</em>
-</li>
-<li>
-<strong>endsWith(String suffix)</strong>: returns <em>true</em> if the string ends with <em>prefix</em>
-</li>
-<li>
-<strong>contains(String s)</strong>: returns <em>true</em> if the string contains <em>s</em>
-</li>
-<li>
-<strong>concat(String s1, String s2, ...)</strong>: returns String with concatenated <em>s1</em>, <em>s2</em>, etc...</li>
-<li>
-<strong>substring(int beginIndex, int endIndex)</strong>: returns the substring from <em>beginIndex</em> to <em>endIndex</em>
-</li>
-<li>
-<strong>replace(String target, String replacement)</strong>: replace every occurrence of <em>target</em> with <em>replacement</em>
-</li>
-</ul><p><a name="double"></a></p>
-
-<h4>
-<a name="double" class="anchor" href="#double"><span class="octicon octicon-link"></span></a>Double</h4>
-
-<p>Every number is parsed and used as a signed double</p>
-
-<h5>
-<a name="functions-3" class="anchor" href="#functions-3"><span class="octicon octicon-link"></span></a>Functions</h5>
-
-<ul>
-<li>
-<strong>abs()</strong>: apply <em>abs</em> to the number</li>
-<li>
-<strong>ceiling()</strong>: returns the smallest integer that is greater than the number argument</li>
-<li>
-<strong>floor()</strong>: returns the largest integer that is not greater than the number argument</li>
-<li>
-<strong>round()</strong>: rounds the number argument to the nearest integer</li>
-<li>
-<strong>round-half-to-even()</strong>: rounds a number with .5 fraction to the nearest even integer</li>
-<li>
-<strong>toString()</strong>: returns the string representation of the number</li>
-</ul><p><a name="comments"></a></p>
-
-<h3>
-<a name="comments" class="anchor" href="#comments"><span class="octicon octicon-link"></span></a>Comments</h3>
-
-<p>There are two type of <em>comments</em>:</p>
-
-<ul>
-<li>
-<strong>Line Comments</strong> start with the sequence <code>//</code> and stop at the end of line</li>
-<li>
-<strong>General Comments</strong> start with the sequence <code>/*</code> and continue until character sequence <code>*/</code>, it could contain more than one line</li>
-</ul><p>Comments do not nest.</p>
-
-<p><a name="keyword"></a></p>
-
-<h3>
-<a name="keyword" class="anchor" href="#keyword"><span class="octicon octicon-link"></span></a>Keyword</h3>
-
-<p>The following keywords are reserved and may not be used as identifiers</p>
-
-<pre><code>let       max       startsWith
-in        min       endsWith
-forall    sum       contains
-exists    avg
-numOf     product
-</code></pre>
-
-<p><a name="operators"></a></p>
-
-<h3>
-<a name="operators" class="anchor" href="#operators"><span class="octicon octicon-link"></span></a>Operators</h3>
-
-<p>The following character sequences represent operators, delimiters, and other special tokens:</p>
-
-<pre><code>==    +    &amp;&amp;    ,    (  )
-!=    -    ||    ;    [  ]
-&gt;     *    !     .
-&lt;     /
-&gt;=    %
-&lt;=
-=
-</code></pre>
-
-<p><a name="examples"></a></p>
-
-<h1>
-<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h1>
-
-<p>WSCoL is a very flexible language and for this reason it could be used in various contexts.<br>
-In the following sections you’ll find out some nice application.</p>
-
-<p><a name="example_toy"></a></p>
+<p><a name="grammar"></a></p>
 
 <h2>
-<a name="toy-example-book-store" class="anchor" href="#toy-example-book-store"><span class="octicon octicon-link"></span></a><em>Toy example: Book store</em>
-</h2>
+<a name="grammar" class="anchor" href="#grammar"><span class="octicon octicon-link"></span></a>Grammar</h2>
 
-<p>Just a little case to understand better about what we’re talking about.<br>
-At first you need to get the application jar, download it <a href="">here</a>.<br>
-The input file is the succeeding xml file, <strong><em>book.xml</em></strong>:</p>
+<p>The syntax is specified using Extended Backus-Naur Form (EBNF): </p>
 
-<div class="highlight highlight-XML"><pre><span class="nt">&lt;inventory&gt;</span>
-    <span class="nt">&lt;name&gt;</span>InventoryABCD<span class="nt">&lt;/name&gt;</span>
-    <span class="nt">&lt;book&gt;</span>
-        <span class="nt">&lt;year&gt;</span>2000<span class="nt">&lt;/year&gt;</span>
-        <span class="nt">&lt;title&gt;</span>Snow Crash<span class="nt">&lt;/title&gt;</span>
-        <span class="nt">&lt;authors&gt;</span>
-            <span class="nt">&lt;author&gt;</span>Neal Stephenson<span class="nt">&lt;/author&gt;</span>
-        <span class="nt">&lt;/authors&gt;</span>
-        <span class="nt">&lt;publisher&gt;</span>Spectra<span class="nt">&lt;/publisher&gt;</span>
-        <span class="nt">&lt;isbn&gt;</span>0553380958<span class="nt">&lt;/isbn&gt;</span>
-        <span class="nt">&lt;price&gt;</span>15<span class="nt">&lt;/price&gt;</span>
-    <span class="nt">&lt;/book&gt;</span>
-    <span class="nt">&lt;book&gt;</span>
-        <span class="nt">&lt;year&gt;</span>2005<span class="nt">&lt;/year&gt;</span>
-        <span class="nt">&lt;title&gt;</span>Burning Tower<span class="nt">&lt;/title&gt;</span>
-        <span class="nt">&lt;authors&gt;</span>
-            <span class="nt">&lt;author&gt;</span>Larry Niven<span class="nt">&lt;/author&gt;</span>
-            <span class="nt">&lt;author&gt;</span>Jerry Pournelle<span class="nt">&lt;/author&gt;</span>
-        <span class="nt">&lt;/authors&gt;</span>
-        <span class="nt">&lt;publisher&gt;</span>Pocket<span class="nt">&lt;/publisher&gt;</span>
-        <span class="nt">&lt;isbn&gt;</span>0743416910<span class="nt">&lt;/isbn&gt;</span>
-        <span class="nt">&lt;price&gt;</span>6<span class="nt">&lt;/price&gt;</span>
-    <span class="nt">&lt;/book&gt;</span>
-    <span class="nt">&lt;book&gt;</span>
-        <span class="nt">&lt;year&gt;</span>1995<span class="nt">&lt;/year&gt;</span>
-        <span class="nt">&lt;title&gt;</span>Zodiac<span class="nt">&lt;/title&gt;</span>
-        <span class="nt">&lt;authors&gt;</span>
-            <span class="nt">&lt;author&gt;</span>Neal Stephenson<span class="nt">&lt;/author&gt;</span>
-        <span class="nt">&lt;/authors&gt;</span>
-        <span class="nt">&lt;publisher&gt;</span>Spectra<span class="nt">&lt;/publisher&gt;</span>
-        <span class="nt">&lt;isbn&gt;&lt;/isbn&gt;</span>
-        <span class="nt">&lt;price&gt;</span>7.50<span class="nt">&lt;/price&gt;</span>
-    <span class="nt">&lt;/book&gt;</span>
-<span class="nt">&lt;/inventory&gt;</span>
-</pre></div>
+<pre><code>Model:
+    Declaration* Assertions ';'
 
-<p>The following assertions are based on this file.</p>
+Declaration:
+    'let' Variable 'in' Assertion ';'
 
-<p><a name="example_toy_1"></a></p>
+Assertions:
+    PrimaryAssertions (('&amp;&amp;' | '||') PrimaryAssertions )*
 
-<h3>
-<a name="first-assertion" class="anchor" href="#first-assertion"><span class="octicon octicon-link"></span></a>First Assertion</h3>
+PrimaryAssertions:
+    '(' Assertions ')' | '!(' Assertions ')' | Assertion
 
-<p>Now we have to generate a wscol file with the assertions to verify.
-For convenience just save <strong><em>assertions.wscol</em></strong> in the same folder as the xml file and the application jar, then copy-and-paste the next assertion:</p>
+Assertion:
+    Expression Rop Expression;
 
-<pre><code>/inventory/book[1]/title == "Snow Crash";
+Expression:
+    Step+ ('.' Function)* | NumericExpression | AssertionQuantified | Array | Boolean
+
+Step:
+    '/' ID ('[' Predicate ']')? | Variable
+
+Predicate:
+    ID Rop (STRING|NUMBER|Variable) | NUMBER | Variable
+
+Function:
+    ID '(' (Values)? ')'
+
+AssertionQuantified:
+    Quantifier '(' Variable 'in' Variable, Assertions ')'
+
+Variable:
+    '$' ID
+
+Rop:
+    '==' | '!=' | '&gt;' | '&gt;=' | '&lt;' | '&lt;='
 </code></pre>
 
-<p>Launch the application from cli with the command</p>
-
-<pre lang="Shell"><code>$ java –jar WSCoL-App.jar assertion.wscol –xml book.xml
-</code></pre>
-
-<p>The assertion says that the title of the first book (note the use of the predicate in square brackets) is equal to <code>“Snow Crash”</code> and, obviously, the result is <em>true</em>.<br>
-The expression returns a string and correctly compare it with the string on the right side that we have written.<br>
-Due to the flexibility of WSCoL, the same assertion can be written in different manners:</p>
-
-<pre><code>/* Alternative 1 */
-let $a = /inventory/book[1]/title;
-let $b = “Snow Crash”;
-$a == $b; 
-</code></pre>
-
-<p>In this case the result of the expression is stored in the variable <code>$a</code>, while our string is in <code>$b</code>.<br>
-Then the assertion simply test the equality of the two.</p>
-
-<pre><code>/* Alternative 2 */
-let $a = /inventory/book[1];
-$a/title == “Snow Crash”;
-</code></pre>
-
-<p>Instead, in the alternative two, the value assigned to the variable <code>$a</code> is an <a href="#sdo"><em>SDO</em></a>, i.e. an object containing other objects (as you can see from the xml file, a book holds nodes like <em>title</em>, <em>authors</em>, <em>publisher</em>, etc…).<br>
-A representation of the <em>SDO</em> defined by <code>$a</code> is</p>
-
-<pre><code>$a = {
-    year = 2000,
-    title = ”Snow Crash”,
-    authors = {
-        author = ”Neal Stephenson”
-    },
-    publisher = ”Spectra”,
-    isbn = ”0553380958”,
-    price = 15
-}
-</code></pre>
-
-<p>With the expression <code>$a/title</code> we get the string contained by the property title.</p>
-
-<p>You can play as you like with variables and xpath navigation. But there’s some exceptions: for example you cannot apply a predicate to a variable (the solution is to use the function <code>get()</code>)  or use a variable in steps that is not the first.<br>
-Note that the use of function get is possible when you apply it to an SDO or to an array, it has no sense when the cardinality of the object is one. The function is not intended to substitute the standard navigation, so use it properly.</p>
-
-<pre><code>/* Wrong use of predicate */
-let $a = /inventory/book;
-$a[1]/title == “Snow Crash”;
-</code></pre>
-
-<pre><code>/* Correct way */
-let $a = /inventory/book;
-$a.get(1).get(‘title’) == “Snow Crash”;
-</code></pre>
-
-<p>Another possible alternative to the first assertion is the next one</p>
-
-<pre><code>/* Alternative 3 – Array */
-let $a = /inventory/book/title;
-$a.get(1) == “Snow Crash”;
-</code></pre>
-
-<p>In this situation, the declaration’s result is an array with the titles of all the books found:<code>$a = [“Snow Crash”, “Burning Tower” “Zodiac”]</code>.<br>
-Then, with the <code>get()</code> function, you obtain the first element of the array: <code>“Snow Crash”</code>.</p>
-
-<p><a name="example_toy_2"></a></p>
-
-<h2>
-<a name="second-assertion---aggregated-functions" class="anchor" href="#second-assertion---aggregated-functions"><span class="octicon octicon-link"></span></a>Second Assertion - Aggregated Functions</h2>
-
-<pre><code>let $books = /inventory/book;
-let $authors = $books/authors/author;
-exists($author in $authors, numOf($book in $books, $book/authors.contains($author)) &gt; 1);
-</code></pre>
-
-<p>In this case, we are looking for the authors that has written more than one book.
-The declarations returns, respectively, the array containing all books and the array with all the authors.<br>
-The assertion is the result of the nesting of two quantified assertions.<br>
-The <code>exists</code> assertion starts iterating over the elements of the <em>authors</em> array, and, for each <em>author</em>, checks the condition. The condition is a comparison between another quantified assertion (this time a <code>numOf</code>) which returns a number that as to be greater than one to prove the condition of the <code>exists</code>.<br>
-The <code>numOf</code> iterate over all the <em>books</em>, obtains the <em>authors</em> of each <em>book</em> and, with the <code>contains()</code> function, check if the actual <em>author</em> we are searching is into that book’s authors array.<br>
-The external assertion has to be true; as already said, this is implicitly deducted from the grammar.</p>
-
-<p><a name="example_toy_3"></a></p>
-
-<h2>
-<a name="third-assertion---negated-assertion" class="anchor" href="#third-assertion---negated-assertion"><span class="octicon octicon-link"></span></a>Third Assertion - Negated Assertion</h2>
-
-<pre><code>/* Negated Assertion */
-let $books = /inventory/book;
-!( exists($book in $books, $book/title.startsWith($book/publisher.substring(0,1))) );
-</code></pre>
-
-<p>This one assert that there is no <em>books</em> which <em>title</em> starts with the same letter as its <em>publisher</em>.<br>
-As you can see, the <code>exists</code> assertion is negated (inside brackets and preceded by the exclamation mark <code>!(...)</code>).<br>
-The <code>startsWith()</code> bear out the prefix of the book <em>title</em> using as parameter the result of another expression: after getting the book <em>publisher</em>, it takes the first letter by the use of the <code>substring()</code> function.<br></p>
-
-<p><a name="example_toy_4"></a></p>
-
-<h2>
-<a name="fourth-assertion---numeric-aggregate-functions" class="anchor" href="#fourth-assertion---numeric-aggregate-functions"><span class="octicon octicon-link"></span></a>Fourth Assertion - Numeric Aggregate Functions</h2>
-
-<pre><code>/* Test for arithmetic expressions (min, max, avg...) */
-let $prices = /inventory/book/price;
-let $min = min($price in $prices, $price &gt; 0);
-let $max = max($price in $prices, $price &gt; 0);
-let $avg = avg($price in $prices, $price &gt; 0);
-let $prod = product($price in $prices, $price &gt; 0);
-let $sum = sum($price in $prices, $price &gt; 0);
-$min == 6.00 &amp;&amp; $max == 15 &amp;&amp; $avg == 9.5 || $prod &gt; 675.0 &amp;&amp; $sum &lt; 28.5;
-</code></pre>
-
-<p>Here we declare many variables, each of them is containing a number, related to the relative expression: for example, <code>$min</code> contains the minimum <em>price</em>, in the range of the array <code>$prices</code>, that is greater than zero (this condition is very weak, so the expression simply means ‘search the lowest price’). The same reasoning can be done for the other statements.<br>
-The assertions section presents logical operators AND (<code>&amp;&amp;</code>) and an OR operator (<code>||</code>): according to the operators priority, the AND operators comes first, so the OR is applied as showed:</p>
-
-<pre><code>($min == 6.00 &amp;&amp; $max == 15 &amp;&amp; $avg == 9.5) || ($prod &gt; 675.0 &amp;&amp; $sum &lt; 28.5)
-</code></pre>
-
-<p>Different orders are indicated with the use of bracket, as in the next snippet:</p>
-
-<pre><code>$min == 6.00 &amp;&amp; $max == 15 &amp;&amp; ($avg == 9.5 || $prod &gt; 675.0) &amp;&amp; $sum &lt; 28.5
-</code></pre>
-
-<p><a name="example_toy_5"></a></p>
-
-<h3>
-<a name="fifth-assertion---expressions" class="anchor" href="#fifth-assertion---expressions"><span class="octicon octicon-link"></span></a>Fifth Assertion - Expressions</h3>
-
-<pre><code>let $exp = 1 + 2 * 4 % 5;
-exp == 4;
-</code></pre>
-
-<p>WSCoL gives also the possibility to use and evaluate numeric expressions (see <a href="#num_expr">Numeric Expression</a>)</p>
-
-<pre><code>let $first_price = /inventory/book[1]/price;
-$first_price + /inventory/book[2]/price &gt; /inventory/book[3]/price;
-</code></pre>
-
-<p><a name="example_handler"></a></p>
-
-<h2>
-<a name="soap-handler-example" class="anchor" href="#soap-handler-example"><span class="octicon octicon-link"></span></a>SOAP Handler Example</h2>
-
-<p>Another possible use for WSCoL language is inside a SOAP Handler: an interceptor of SOAP messages where we can read and verify assertions over the passing SOAP messages.</p>
-
-<p>In this example we use a simple web service based on the previous example, <em>BookstoreService</em>, and a client calling it. Both sides has a SOAP Handler.</p>
-
-<p><a name="example_handler_server"></a></p>
-
-<h2>
-<a name="server-side" class="anchor" href="#server-side"><span class="octicon octicon-link"></span></a>Server Side</h2>
-
-<p><a name="example_handler_server_setup"></a></p>
-
-<h3>
-<a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>Setup</h3>
-
-<p>Download the required libraries, import them in your project and start coding.<br></p>
-
-<p><a name="example_handler_server_libs"></a></p>
-
-<h4>
-<a name="needed-libraries" class="anchor" href="#needed-libraries"><span class="octicon octicon-link"></span></a>Needed Libraries</h4>
-
-<ul>
-<li>WSCoL-Analyzer.jar (<a href="">download</a>)</li>
-<li>WSCoL.jar (required by <em>WSCoL-Analyzer.jar</em>) (<a href="">download</a>)</li>
-<li>json-simple-1.1.1.jar (required by <em>WSCoL-Analyzer.jar</em>) (<a href="">download</a>)</li>
-</ul><p>Full Zip (<a href="">download</a>)</p>
-
-<p><a name="example_handler_server_install"></a></p>
-
-<h4>
-<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h4>
-
-<p>Simply save libraries in a known folder inside your project and import them.<br>
-The procedure in Eclipse IDE is<br><img src="img/soap/00-ImportLibs.png" alt="Import Libs"><br><em>Import Libraries</em></p>
-
-<p><a name="example_handler_server_ws"></a></p>
-
-<h3>
-<a name="web-service" class="anchor" href="#web-service"><span class="octicon octicon-link"></span></a>Web Service</h3>
-
-<p>A simple WS, offering informations on books.<br>
-Methods are the following, the names are self-explanatory:</p>
-
-<ul>
-<li><code>getBooksByAuthor(String)</code></li>
-<li><code>getBookByIsbn(String)</code></li>
-<li><code>getBooksByIsbnList(List&lt;String&gt;)</code></li>
-<li><code>getAllBooksTitle()</code></li>
-<li><code>getBooksNumberPerAuthor()</code></li>
-<li><code>getBooksByPublisherAndYearRange()</code></li>
-</ul><p><em>File: ServerInfo.java</em></p>
-
-<div class="highlight highlight-Java"><pre><span class="kn">package</span> <span class="n">it</span><span class="o">.</span><span class="na">polimi</span><span class="o">.</span><span class="na">bookstore</span><span class="o">.</span><span class="na">ws</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">it.polimi.bookstore.ws.book.HashMapWrapper</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">javax.jws.WebMethod</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.jws.WebService</span><span class="o">;</span>
-
-<span class="nd">@WebService</span>
-<span class="kd">public</span> <span class="kd">interface</span> <span class="nc">ServerInfo</span> <span class="o">{</span>
-
-    <span class="nd">@WebMethod</span>
-    <span class="kd">public</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">getBooksByAuthor</span><span class="o">(</span><span class="n">String</span> <span class="n">author</span><span class="o">);</span>
-
-    <span class="nd">@WebMethod</span>
-    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getBookByIsbn</span><span class="o">(</span><span class="n">String</span> <span class="n">isbn</span><span class="o">);</span>
-
-    <span class="nd">@WebMethod</span>
-    <span class="kd">public</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">getBooksByIsbnList</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">isbnList</span><span class="o">);</span>
-
-    <span class="nd">@WebMethod</span>
-    <span class="kd">public</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">getAllBooksTitle</span><span class="o">();</span>
-
-    <span class="nd">@WebMethod</span>
-    <span class="kd">public</span> <span class="n">HashMapWrapper</span> <span class="nf">getBooksNumberPerAuthor</span><span class="o">();</span>
-
-    <span class="nd">@WebMethod</span>
-    <span class="kd">public</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">getBooksByPublisherAndYearRange</span><span class="o">(</span><span class="n">String</span> <span class="n">publisher</span><span class="o">,</span> <span class="kt">int</span> <span class="n">startYear</span><span class="o">,</span> <span class="kt">int</span> <span class="n">endYear</span><span class="o">);</span>
-
-<span class="o">}</span>
-</pre></div>
-
-<p><em>File: ServerInfoImpl.java</em></p>
-
-<div class="highlight highlight-Java"><pre><span class="kn">package</span> <span class="n">it</span><span class="o">.</span><span class="na">polimi</span><span class="o">.</span><span class="na">bookstore</span><span class="o">.</span><span class="na">ws</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">it.polimi.bookstore.ws.book.Book</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">it.polimi.bookstore.ws.book.Bookstore</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">it.polimi.bookstore.ws.book.HashMapWrapper</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">java.util.ArrayList</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">java.util.HashMap</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">java.util.Map</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">javax.jws.HandlerChain</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.jws.WebService</span><span class="o">;</span>
-
-<span class="nd">@WebService</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">ServerInfoImpl</span> <span class="kd">implements</span> <span class="n">ServerInfo</span> <span class="o">{</span>
-
-    <span class="kd">private</span> <span class="n">Bookstore</span> <span class="n">books</span><span class="o">;</span>
-
-    <span class="kd">private</span> <span class="kt">void</span> <span class="nf">setup</span><span class="o">()</span> <span class="o">{</span>
-        <span class="n">Book</span> <span class="n">first</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Book</span><span class="o">((</span><span class="kt">double</span><span class="o">)</span><span class="mi">2000</span><span class="o">,</span> <span class="s">"Snow Crash"</span><span class="o">,</span> <span class="s">"Neal Stephenson"</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="s">"Spectra"</span><span class="o">,</span> <span class="s">"0553380958"</span><span class="o">,</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="mi">15</span><span class="o">);</span>
-        <span class="n">Book</span> <span class="n">second</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Book</span><span class="o">((</span><span class="kt">double</span><span class="o">)</span><span class="mi">2005</span><span class="o">,</span> <span class="s">"Burning Tower"</span><span class="o">,</span> <span class="s">"Larry Niven"</span><span class="o">,</span> <span class="s">"Jerry Pournelle"</span><span class="o">,</span> <span class="s">"Pocket"</span><span class="o">,</span> <span class="s">"0743416910"</span><span class="o">,</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="mi">6</span><span class="o">);</span>
-        <span class="n">Book</span> <span class="n">third</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Book</span><span class="o">((</span><span class="kt">double</span><span class="o">)</span><span class="mi">1995</span><span class="o">,</span> <span class="s">"Zodiac"</span><span class="o">,</span> <span class="s">"Neal Stephenson"</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="s">"Spectra"</span><span class="o">,</span> <span class="s">"0871131811"</span><span class="o">,</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="mf">7.5</span><span class="o">);</span>
-
-        <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Book</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
-
-        <span class="n">list</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">first</span><span class="o">);</span>
-        <span class="n">list</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">second</span><span class="o">);</span>
-        <span class="n">list</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">third</span><span class="o">);</span>
-
-        <span class="n">books</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Bookstore</span><span class="o">(</span><span class="n">list</span><span class="o">);</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">getBooksByAuthor</span><span class="o">(</span><span class="n">String</span> <span class="n">author</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">if</span><span class="o">(</span><span class="n">books</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
-            <span class="n">setup</span><span class="o">();</span>
-        <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">result</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
-        <span class="k">for</span><span class="o">(</span><span class="n">Book</span> <span class="nl">b:</span><span class="n">books</span><span class="o">.</span><span class="na">getBookstore</span><span class="o">())</span> <span class="o">{</span>
-            <span class="k">if</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getAuthor</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">author</span><span class="o">)</span> <span class="o">||</span> <span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getCoauthor</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">b</span><span class="o">.</span><span class="na">getCoauthor</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">author</span><span class="o">)))</span> <span class="o">{</span>
-                <span class="n">result</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getTitle</span><span class="o">());</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-        <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getBookByIsbn</span><span class="o">(</span><span class="n">String</span> <span class="n">isbn</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">if</span><span class="o">(</span><span class="n">books</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
-            <span class="n">setup</span><span class="o">();</span>
-        <span class="k">for</span><span class="o">(</span><span class="n">Book</span> <span class="nl">b:</span><span class="n">books</span><span class="o">.</span><span class="na">getBookstore</span><span class="o">()){</span>
-            <span class="k">if</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getIsbn</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">isbn</span><span class="o">)){</span>
-                <span class="k">return</span> <span class="n">b</span><span class="o">.</span><span class="na">getTitle</span><span class="o">();</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-        <span class="k">return</span> <span class="s">"No Books Found"</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">getBooksByIsbnList</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">isbnList</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">result</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;();</span>
-        <span class="k">for</span><span class="o">(</span><span class="n">String</span> <span class="nl">isbn:</span><span class="n">isbnList</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">String</span> <span class="n">book</span> <span class="o">=</span> <span class="n">getBookByIsbn</span><span class="o">(</span><span class="n">isbn</span><span class="o">);</span>
-            <span class="k">if</span><span class="o">(</span><span class="n">book</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"No Books Found"</span><span class="o">))</span> <span class="o">{</span>
-                <span class="n">result</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">book</span> <span class="o">+</span> <span class="s">" with ISBN: "</span> <span class="o">+</span> <span class="n">isbn</span><span class="o">);</span>
-            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-                <span class="n">result</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">book</span><span class="o">);</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-        <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">getAllBooksTitle</span><span class="o">()</span> <span class="o">{</span>
-        <span class="k">if</span><span class="o">(</span><span class="n">books</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
-            <span class="n">setup</span><span class="o">();</span>
-        <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">result</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
-        <span class="k">for</span><span class="o">(</span><span class="n">Book</span> <span class="nl">b:</span><span class="n">books</span><span class="o">.</span><span class="na">getBookstore</span><span class="o">())</span> <span class="o">{</span>
-            <span class="n">result</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getTitle</span><span class="o">());</span>
-        <span class="o">}</span>
-        <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="c1">// Cannot return an HashMap (see http://stackoverflow.com/a/13787059)</span>
-    <span class="kd">public</span> <span class="n">HashMapWrapper</span> <span class="nf">getBooksNumberPerAuthor</span><span class="o">()</span> <span class="o">{</span>
-        <span class="k">if</span><span class="o">(</span><span class="n">books</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
-            <span class="n">setup</span><span class="o">();</span>
-        <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="n">authors</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;();</span>
-        <span class="k">for</span><span class="o">(</span><span class="n">Book</span> <span class="nl">b:</span><span class="n">books</span><span class="o">.</span><span class="na">getBookstore</span><span class="o">()){</span>
-            <span class="k">if</span><span class="o">(!</span><span class="n">authors</span><span class="o">.</span><span class="na">containsKey</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getAuthor</span><span class="o">())){</span>
-                <span class="n">authors</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getAuthor</span><span class="o">(),</span> <span class="mi">1</span><span class="o">);</span>
-            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-                <span class="n">authors</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getAuthor</span><span class="o">(),</span> <span class="n">authors</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getAuthor</span><span class="o">())+</span><span class="mi">1</span><span class="o">);</span>
-            <span class="o">}</span>
-            <span class="k">if</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getCoauthor</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">){</span>
-                <span class="k">if</span><span class="o">(!</span><span class="n">authors</span><span class="o">.</span><span class="na">containsKey</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getCoauthor</span><span class="o">())){</span>
-                    <span class="n">authors</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getCoauthor</span><span class="o">(),</span> <span class="mi">1</span><span class="o">);</span>
-                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-                    <span class="n">authors</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getCoauthor</span><span class="o">(),</span> <span class="n">authors</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getCoauthor</span><span class="o">())+</span><span class="mi">1</span><span class="o">);</span>
-                <span class="o">}</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-        <span class="k">return</span> <span class="k">new</span> <span class="nf">HashMapWrapper</span><span class="o">(</span><span class="n">authors</span><span class="o">);</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">getBooksByPublisherAndYearRange</span><span class="o">(</span><span class="n">String</span> <span class="n">publisher</span><span class="o">,</span> <span class="kt">int</span> <span class="n">startYear</span><span class="o">,</span> <span class="kt">int</span> <span class="n">endYear</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">if</span><span class="o">(</span><span class="n">books</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
-            <span class="n">setup</span><span class="o">();</span>
-        <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">result</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
-        <span class="k">for</span><span class="o">(</span><span class="n">Book</span> <span class="nl">b:</span><span class="n">books</span><span class="o">.</span><span class="na">getBookstore</span><span class="o">())</span> <span class="o">{</span>
-            <span class="k">if</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getPublisher</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">publisher</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="n">b</span><span class="o">.</span><span class="na">getYear</span><span class="o">()</span> <span class="o">&gt;=</span> <span class="n">startYear</span> <span class="o">&amp;&amp;</span> <span class="n">b</span><span class="o">.</span><span class="na">getYear</span><span class="o">()</span> <span class="o">&lt;=</span> <span class="n">endYear</span><span class="o">){</span>
-                <span class="n">result</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">getTitle</span><span class="o">());</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-        <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
-    <span class="o">}</span>   
-<span class="o">}</span>
-</pre></div>
-
-<p>Note that <code>setup()</code> method is used for generate and fill a library of class <code>Bookstore</code>, this and <code>Book</code> classes are general POJO used for this tutorial.</p>
-
-<p><em>File: Book.java</em></p>
-
-<div class="highlight highlight-Java"><pre><span class="kn">package</span> <span class="n">it</span><span class="o">.</span><span class="na">polimi</span><span class="o">.</span><span class="na">bookstore</span><span class="o">.</span><span class="na">ws</span><span class="o">.</span><span class="na">book</span><span class="o">;</span>
-
-
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Book</span> <span class="o">{</span>
-
-    <span class="kd">private</span> <span class="n">Double</span> <span class="n">year</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="n">String</span> <span class="n">title</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="n">String</span> <span class="n">author</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="n">String</span> <span class="n">coauthor</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="n">String</span> <span class="n">publisher</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="n">String</span> <span class="n">isbn</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="n">Double</span> <span class="n">price</span><span class="o">;</span>
-
-    <span class="kd">public</span> <span class="nf">Book</span><span class="o">(</span><span class="n">Double</span> <span class="n">year</span><span class="o">,</span> <span class="n">String</span> <span class="n">title</span><span class="o">,</span> <span class="n">String</span> <span class="n">author</span><span class="o">,</span> <span class="n">String</span> <span class="n">coauthor</span><span class="o">,</span> <span class="n">String</span> <span class="n">publisher</span><span class="o">,</span> <span class="n">String</span> <span class="n">isbn</span><span class="o">,</span> <span class="n">Double</span> <span class="n">price</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">year</span> <span class="o">=</span> <span class="n">year</span><span class="o">;</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">title</span> <span class="o">=</span> <span class="n">title</span><span class="o">;</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">author</span> <span class="o">=</span> <span class="n">author</span><span class="o">;</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">coauthor</span> <span class="o">=</span> <span class="n">coauthor</span><span class="o">;</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">publisher</span> <span class="o">=</span> <span class="n">publisher</span><span class="o">;</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">isbn</span> <span class="o">=</span> <span class="n">isbn</span><span class="o">;</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">price</span> <span class="o">=</span> <span class="n">price</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="n">Double</span> <span class="nf">getYear</span><span class="o">()</span> <span class="o">{</span>
-        <span class="k">return</span> <span class="n">year</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setYear</span><span class="o">(</span><span class="n">Double</span> <span class="n">year</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">year</span> <span class="o">=</span> <span class="n">year</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getTitle</span><span class="o">()</span> <span class="o">{</span>
-        <span class="k">return</span> <span class="n">title</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setTitle</span><span class="o">(</span><span class="n">String</span> <span class="n">title</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">title</span> <span class="o">=</span> <span class="n">title</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getAuthor</span><span class="o">()</span> <span class="o">{</span>
-        <span class="k">return</span> <span class="n">author</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setAuthor</span><span class="o">(</span><span class="n">String</span> <span class="n">author</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">author</span> <span class="o">=</span> <span class="n">author</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getCoauthor</span><span class="o">()</span> <span class="o">{</span>
-        <span class="k">return</span> <span class="n">coauthor</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setCoauthor</span><span class="o">(</span><span class="n">String</span> <span class="n">coauthor</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">coauthor</span> <span class="o">=</span> <span class="n">coauthor</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getPublisher</span><span class="o">()</span> <span class="o">{</span>
-        <span class="k">return</span> <span class="n">publisher</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setPublisher</span><span class="o">(</span><span class="n">String</span> <span class="n">publisher</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">publisher</span> <span class="o">=</span> <span class="n">publisher</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getIsbn</span><span class="o">()</span> <span class="o">{</span>
-        <span class="k">return</span> <span class="n">isbn</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setIsbn</span><span class="o">(</span><span class="n">String</span> <span class="n">isbn</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">isbn</span> <span class="o">=</span> <span class="n">isbn</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="n">Double</span> <span class="nf">getPrice</span><span class="o">()</span> <span class="o">{</span>
-        <span class="k">return</span> <span class="n">price</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setPrice</span><span class="o">(</span><span class="n">Double</span> <span class="n">price</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">price</span> <span class="o">=</span> <span class="n">price</span><span class="o">;</span>
-    <span class="o">}</span>   
-<span class="o">}</span>
-</pre></div>
-
-<p><em>File: Bookstore.java</em></p>
-
-<div class="highlight highlight-Java"><pre><span class="kn">package</span> <span class="n">it</span><span class="o">.</span><span class="na">polimi</span><span class="o">.</span><span class="na">bookstore</span><span class="o">.</span><span class="na">ws</span><span class="o">.</span><span class="na">book</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">java.util.ArrayList</span><span class="o">;</span>
-
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Bookstore</span> <span class="o">{</span>
-
-    <span class="kd">private</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Book</span><span class="o">&gt;</span> <span class="n">bookstore</span><span class="o">;</span>
-
-    <span class="kd">public</span> <span class="nf">Bookstore</span><span class="o">(</span><span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Book</span><span class="o">&gt;</span> <span class="n">bookstore</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">bookstore</span> <span class="o">=</span> <span class="n">bookstore</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Book</span><span class="o">&gt;</span> <span class="nf">getBookstore</span><span class="o">()</span> <span class="o">{</span>
-        <span class="k">return</span> <span class="n">bookstore</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setBookstore</span><span class="o">(</span><span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Book</span><span class="o">&gt;</span> <span class="n">bookstore</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">bookstore</span> <span class="o">=</span> <span class="n">bookstore</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">addBook</span><span class="o">(</span><span class="n">Book</span> <span class="n">book</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">bookstore</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">book</span><span class="o">);</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="n">Book</span> <span class="nf">getBook</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">return</span> <span class="n">bookstore</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-
-</pre></div>
-
-<p>Then we declare a web service endpoint for the service which will publish outside the service for user access.<br><em>File: WsPublisher.java</em></p>
-
-<div class="highlight highlight-Java"><pre><span class="kn">package</span> <span class="n">it</span><span class="o">.</span><span class="na">polimi</span><span class="o">.</span><span class="na">bookstore</span><span class="o">.</span><span class="na">endpoint</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">it.polimi.bookstore.ws.ServerInfoImpl</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">javax.xml.ws.Endpoint</span><span class="o">;</span>
-
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">WsPublisher</span> <span class="o">{</span>
-
-    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-           <span class="n">Endpoint</span><span class="o">.</span><span class="na">publish</span><span class="o">(</span><span class="s">"http://localhost:8888/bookstorews/server"</span><span class="o">,</span> <span class="k">new</span> <span class="n">ServerInfoImpl</span><span class="o">());</span>
-
-           <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"BookStore WebService is published!"</span><span class="o">);</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</pre></div>
-
-<p>Finally we generate necessary Java files for the web service deployment with <code>wsgen</code> command from the bin folder of the project</p>
-
-<pre><code>$ wsgen -keep -verbose -cp . it.polimi.bookstore.ws.ServerInfoImpl
-</code></pre>
-
-<p>This will create two files for each method of the service.</p>
-
-<p><a name="example_handler_server_handler"></a></p>
-
-<h3>
-<a name="server-soap-handler" class="anchor" href="#server-soap-handler"><span class="octicon octicon-link"></span></a>Server SOAP Handler</h3>
-
-<p>The server side SOAP Handler we're going to build it's going to use WSCoL for checking constraints on the parameters passed to BookstoreService from service clients, for every incoming message.</p>
-
-<p>We declare and initialize the analyzer with <code>WSCoLAnalyzer analyzer = new WSCoLAnalyzer();</code>, then we obtain the XML Document of the SOAP Message body and pass it to the analyzer that will use it as input file and parse it as an <a href="#sdo">SDO</a> (<code>analyzer.setXMLInput(soapBody.getOwnerDocument());</code>).</p>
-
-<div class="highlight highlight-Java"><pre><span class="c1">//...</span>
-<span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">handleMessage</span><span class="o">(</span><span class="n">SOAPMessageContext</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-
-        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"Server : handleMessage()......"</span><span class="o">);</span>
-
-        <span class="n">Boolean</span> <span class="n">isResponse</span> <span class="o">=</span> <span class="o">(</span><span class="n">Boolean</span><span class="o">)</span> <span class="n">context</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">MessageContext</span><span class="o">.</span><span class="na">MESSAGE_OUTBOUND_PROPERTY</span><span class="o">);</span>
-
-        <span class="k">if</span> <span class="o">(!</span><span class="n">isResponse</span><span class="o">)</span> <span class="o">{</span>
-
-            <span class="n">WSCoLAnalyzer</span> <span class="n">analyzer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">WSCoLAnalyzer</span><span class="o">();</span>
-
-            <span class="k">try</span> <span class="o">{</span>
-                <span class="n">SOAPMessage</span> <span class="n">soapMsg</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="na">getMessage</span><span class="o">();</span>
-                <span class="n">SOAPBody</span> <span class="n">soapBody</span> <span class="o">=</span> <span class="n">soapMsg</span><span class="o">.</span><span class="na">getSOAPBody</span><span class="o">();</span>
-
-                <span class="c1">// the analyzer parse the body of the SOAP Msg to an SDO </span>
-                <span class="n">analyzer</span><span class="o">.</span><span class="na">setXMLInput</span><span class="o">(</span><span class="n">soapBody</span><span class="o">.</span><span class="na">getOwnerDocument</span><span class="o">());</span>
-
-                <span class="n">Node</span> <span class="n">requestNode</span> <span class="o">=</span> <span class="n">soapBody</span><span class="o">.</span><span class="na">getFirstChild</span><span class="o">();</span>
-                <span class="n">String</span> <span class="n">name</span> <span class="o">=</span> <span class="n">requestNode</span><span class="o">.</span><span class="na">getLocalName</span><span class="o">();</span>
-
-<span class="c1">//...</span>
-</pre></div>
-
-<p>At this point we check <code>name</code> (corresponding to the called method) and we evaluate WSCoL assertions on the passed arguments (see comments), we are checking pre-conditions.</p>
-
-<div class="highlight highlight-Java"><pre><span class="c1">//...</span>
-
-<span class="k">if</span> <span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBooksByAuthor"</span><span class="o">))</span> <span class="o">{</span>
-    <span class="c1">// we assert that the argument could not be empty</span>
-    <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $author = /Envelope/Body/getBooksByAuthor/arg0; $author.cardinality() == 0;"</span><span class="o">;</span>
-    <span class="k">try</span> <span class="o">{</span>
-        <span class="k">if</span><span class="o">(</span><span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">(</span><span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
-            <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Author field could not be empty."</span><span class="o">);</span>
-        <span class="o">}</span>
-    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">WSCoLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span> <span class="c1">// this catch errors in the assertion, but responde to client a generic message</span>
-        <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Server could not respond due to validation errors in the server side SOAPHandler."</span><span class="o">);</span>
-    <span class="o">}</span>
-<span class="o">}</span> <span class="k">else</span> <span class="k">if</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBookByIsbn"</span><span class="o">))</span> <span class="o">{</span>
-    <span class="c1">// assert that the isbn argument must be long 10 characters</span>
-    <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $isbn = /Envelope/Body/getBookByIsbn/arg0; $isbn.length() == 10;"</span><span class="o">;</span>
-    <span class="k">try</span> <span class="o">{</span>
-        <span class="k">if</span><span class="o">(!</span><span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">(</span><span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
-            <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Wrong ISBN format"</span><span class="o">);</span>
-        <span class="o">}</span>
-    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">WSCoLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Server could not respond due to validation errors in the server side SOAPHandler."</span><span class="o">);</span>
-    <span class="o">}</span>
-<span class="o">}</span> <span class="k">else</span> <span class="k">if</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBooksByIsbnList"</span><span class="o">))</span> <span class="o">{</span>
-    <span class="c1">// assert that each isbn in the list must be long 10 characters</span>
-    <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $isbns = /Envelope/Body/getBooksByIsbnList/arg0; forall($isbn in $isbns, $isbn.length() == 10);"</span><span class="o">;</span>
-    <span class="k">try</span> <span class="o">{</span>
-        <span class="k">if</span><span class="o">(!</span><span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">(</span><span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
-            <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Wrong ISBN format"</span><span class="o">);</span>
-        <span class="o">}</span>
-    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">WSCoLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Server could not respond due to validation errors in the server side SOAPHandler."</span><span class="o">);</span>
-    <span class="o">}</span>
-<span class="o">}</span> <span class="k">else</span> <span class="k">if</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBooksByPublisherAndYearRange"</span><span class="o">))</span> <span class="o">{</span>
-    <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $publisher = /Envelope/Body/getBooksByPublisherAndYearRange/arg0;"</span>
-                                     <span class="o">+</span> <span class="s">"let $startYear = /Envelope/Body/getBooksByPublisherAndYearRange/arg1;"</span>
-                                     <span class="o">+</span> <span class="s">"let $endYear = /Envelope/Body/getBooksByPublisherAndYearRange/arg2;"</span>
-                                     <span class="o">+</span> <span class="s">"$publisher.cardinality() != 0 &amp;&amp; $startYear &gt; 1900 &amp;&amp; $endYear &lt;= 2013;"</span><span class="o">;</span>
-    <span class="k">try</span> <span class="o">{</span>
-        <span class="k">if</span><span class="o">(!</span><span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">(</span><span class="n">assertion</span><span class="o">)){</span>
-            <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Passed arguments are wrong (incorrect year or empty publisher)"</span><span class="o">);</span>
-        <span class="o">}</span>
-    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">WSCoLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Server could not respond due to validation errors in the server side SOAPHandler."</span><span class="o">);</span>
-    <span class="o">}</span>
-<span class="o">}</span> <span class="k">else</span> <span class="k">if</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getAllBooksTitle"</span><span class="o">)</span> <span class="o">||</span> <span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBooksNumberPerAuthor"</span><span class="o">)){</span>
-    <span class="c1">// nothing to do here, no arguments</span>
-<span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-    <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Wrong operation."</span><span class="o">);</span>
-<span class="o">}</span>
-
-<span class="c1">//...</span>
-</pre></div>
-
-<p>Here's the complete code of the handler.<br><em>File: ValidationHandler.java</em></p>
-
-<div class="highlight highlight-Java"><pre><span class="kn">package</span> <span class="n">it</span><span class="o">.</span><span class="na">polimi</span><span class="o">.</span><span class="na">bookstore</span><span class="o">.</span><span class="na">handler</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">it.polimi.wscol.WSCoLAnalyzer</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">it.polimi.wscol.helpers.WSCoLException</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">java.io.IOException</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">java.util.Set</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">javax.xml.namespace.QName</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.soap.SOAPBody</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.soap.SOAPException</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.soap.SOAPFault</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.soap.SOAPMessage</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.ws.handler.MessageContext</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.ws.handler.soap.SOAPHandler</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.ws.handler.soap.SOAPMessageContext</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.ws.soap.SOAPFaultException</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">org.w3c.dom.Node</span><span class="o">;</span>
-
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">ValidationHandler</span> <span class="kd">implements</span> <span class="n">SOAPHandler</span><span class="o">&lt;</span><span class="n">SOAPMessageContext</span><span class="o">&gt;</span> <span class="o">{</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">handleMessage</span><span class="o">(</span><span class="n">SOAPMessageContext</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-
-        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"Server : handleMessage()......"</span><span class="o">);</span>
-
-        <span class="n">Boolean</span> <span class="n">isResponse</span> <span class="o">=</span> <span class="o">(</span><span class="n">Boolean</span><span class="o">)</span> <span class="n">context</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">MessageContext</span><span class="o">.</span><span class="na">MESSAGE_OUTBOUND_PROPERTY</span><span class="o">);</span>
-
-        <span class="k">if</span> <span class="o">(!</span><span class="n">isResponse</span><span class="o">)</span> <span class="o">{</span>
-
-            <span class="n">WSCoLAnalyzer</span> <span class="n">analyzer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">WSCoLAnalyzer</span><span class="o">();</span>
-
-            <span class="k">try</span> <span class="o">{</span>
-                <span class="n">SOAPMessage</span> <span class="n">soapMsg</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="na">getMessage</span><span class="o">();</span>
-                <span class="n">SOAPBody</span> <span class="n">soapBody</span> <span class="o">=</span> <span class="n">soapMsg</span><span class="o">.</span><span class="na">getSOAPBody</span><span class="o">();</span>
-
-                <span class="c1">// the analyzer parse the body of the SOAP Msg to an SDO </span>
-                <span class="n">analyzer</span><span class="o">.</span><span class="na">setXMLInput</span><span class="o">(</span><span class="n">soapBody</span><span class="o">.</span><span class="na">getOwnerDocument</span><span class="o">());</span>
-
-                <span class="n">Node</span> <span class="n">requestNode</span> <span class="o">=</span> <span class="n">soapBody</span><span class="o">.</span><span class="na">getFirstChild</span><span class="o">();</span>
-                <span class="n">String</span> <span class="n">name</span> <span class="o">=</span> <span class="n">requestNode</span><span class="o">.</span><span class="na">getLocalName</span><span class="o">();</span>
-
-                <span class="k">if</span> <span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBooksByAuthor"</span><span class="o">))</span> <span class="o">{</span>
-                    <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $author = /Envelope/Body/getBooksByAuthor/arg0; $author.cardinality() == 0;"</span><span class="o">;</span>
-                    <span class="k">try</span> <span class="o">{</span>
-                        <span class="k">if</span><span class="o">(</span><span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">(</span><span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
-                            <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Author field could not be empty."</span><span class="o">);</span>
-                        <span class="o">}</span>
-                    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">WSCoLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-                        <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Server could not respond due to validation errors in the server side SOAPHandler."</span><span class="o">);</span>
-                    <span class="o">}</span>
-                <span class="o">}</span> <span class="k">else</span> <span class="k">if</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBookByIsbn"</span><span class="o">))</span> <span class="o">{</span>
-                    <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $isbn = /Envelope/Body/getBookByIsbn/arg0; $isbn.length() == 10;"</span><span class="o">;</span>
-                    <span class="k">try</span> <span class="o">{</span>
-                        <span class="k">if</span><span class="o">(!</span><span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">(</span><span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
-                            <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Wrong ISBN format"</span><span class="o">);</span>
-                        <span class="o">}</span>
-                    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">WSCoLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-                        <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Server could not respond due to validation errors in the server side SOAPHandler."</span><span class="o">);</span>
-                    <span class="o">}</span>
-                <span class="o">}</span> <span class="k">else</span> <span class="k">if</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBooksByIsbnList"</span><span class="o">))</span> <span class="o">{</span>
-                    <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $isbns = /Envelope/Body/getBooksByIsbnList/arg0; forall($isbn in $isbns, $isbn.length() == 10);"</span><span class="o">;</span>
-                    <span class="k">try</span> <span class="o">{</span>
-                        <span class="k">if</span><span class="o">(!</span><span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">(</span><span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
-                            <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Wrong ISBN format"</span><span class="o">);</span>
-                        <span class="o">}</span>
-                    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">WSCoLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-                        <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Server could not respond due to validation errors in the server side SOAPHandler."</span><span class="o">);</span>
-                    <span class="o">}</span>
-                <span class="o">}</span> <span class="k">else</span> <span class="k">if</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBooksByPublisherAndYearRange"</span><span class="o">))</span> <span class="o">{</span>
-                    <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $publisher = /Envelope/Body/getBooksByPublisherAndYearRange/arg0;"</span>
-                            <span class="o">+</span> <span class="s">"let $startYear = /Envelope/Body/getBooksByPublisherAndYearRange/arg1;"</span>
-                            <span class="o">+</span> <span class="s">"let $endYear = /Envelope/Body/getBooksByPublisherAndYearRange/arg2;"</span>
-                            <span class="o">+</span> <span class="s">"$publisher.cardinality() != 0 &amp;&amp; $startYear &gt; 1900 &amp;&amp; $endYear &lt;= 2013;"</span><span class="o">;</span>
-                    <span class="k">try</span> <span class="o">{</span>
-                        <span class="k">if</span><span class="o">(!</span><span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">(</span><span class="n">assertion</span><span class="o">)){</span>
-                            <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Passed arguments are wrong (incorrect year or empty publisher)"</span><span class="o">);</span>
-                        <span class="o">}</span>
-                    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">WSCoLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-                        <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Server could not respond due to validation errors in the server side SOAPHandler."</span><span class="o">);</span>
-                    <span class="o">}</span>
-                <span class="o">}</span> <span class="k">else</span> <span class="k">if</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getAllBooksTitle"</span><span class="o">)</span> <span class="o">||</span> <span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBooksNumberPerAuthor"</span><span class="o">)){</span>
-                    <span class="c1">// nothing to do here</span>
-                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-                    <span class="n">generateSOAPErrMessage</span><span class="o">(</span><span class="n">soapMsg</span><span class="o">,</span> <span class="s">"Wrong operation."</span><span class="o">);</span>
-                <span class="o">}</span>
-                <span class="c1">// tracking</span>
-                <span class="n">soapMsg</span><span class="o">.</span><span class="na">writeTo</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">);</span>
-                <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">();</span>
-
-            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SOAPException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-                <span class="n">System</span><span class="o">.</span><span class="na">err</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">e</span><span class="o">);</span>
-            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-                <span class="n">System</span><span class="o">.</span><span class="na">err</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">e</span><span class="o">);</span>
-            <span class="o">}</span>
-
-        <span class="o">}</span>
-        <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">handleFault</span><span class="o">(</span><span class="n">SOAPMessageContext</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"Server : handleFault()......"</span><span class="o">);</span>
-        <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">close</span><span class="o">(</span><span class="n">MessageContext</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"Server : close()......"</span><span class="o">);</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">QName</span><span class="o">&gt;</span> <span class="nf">getHeaders</span><span class="o">()</span> <span class="o">{</span>
-        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"Server : getHeaders()......"</span><span class="o">);</span>
-        <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">private</span> <span class="kt">void</span> <span class="nf">generateSOAPErrMessage</span><span class="o">(</span><span class="n">SOAPMessage</span> <span class="n">msg</span><span class="o">,</span> <span class="n">String</span> <span class="n">reason</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">try</span> <span class="o">{</span>
-            <span class="n">SOAPBody</span> <span class="n">soapBody</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="na">getSOAPPart</span><span class="o">().</span><span class="na">getEnvelope</span><span class="o">().</span><span class="na">getBody</span><span class="o">();</span>
-            <span class="n">SOAPFault</span> <span class="n">soapFault</span> <span class="o">=</span> <span class="n">soapBody</span><span class="o">.</span><span class="na">addFault</span><span class="o">();</span>
-            <span class="n">soapFault</span><span class="o">.</span><span class="na">setFaultString</span><span class="o">(</span><span class="n">reason</span><span class="o">);</span>
-            <span class="k">throw</span> <span class="k">new</span> <span class="nf">SOAPFaultException</span><span class="o">(</span><span class="n">soapFault</span><span class="o">);</span>
-        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SOAPException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-
-<span class="o">}</span>
-</pre></div>
-
-<p><a name="example_handler_server_handler_xml"></a></p>
-
-<h3>
-<a name="soaphandler-xml-file" class="anchor" href="#soaphandler-xml-file"><span class="octicon octicon-link"></span></a>SOAPHandler XML File</h3>
-
-<p>Create a SOAP handler XML file, and puts your SOAP handler declaration.</p>
-
-<p><em>File: handler-chain.xml</em></p>
-
-<div class="highlight highlight-XML"><pre><span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;</span>
-<span class="nt">&lt;javaee:handler-chains</span> 
-     <span class="na">xmlns:javaee=</span><span class="s">"http://java.sun.com/xml/ns/javaee"</span> 
-     <span class="na">xmlns:xsd=</span><span class="s">"http://www.w3.org/2001/XMLSchema"</span><span class="nt">&gt;</span>
-  <span class="nt">&lt;javaee:handler-chain&gt;</span>
-    <span class="nt">&lt;javaee:handler&gt;</span>
-      <span class="nt">&lt;javaee:handler-class&gt;</span>it.polimi.bookstore.handler.ValidationHandler<span class="nt">&lt;/javaee:handler-class&gt;</span>
-    <span class="nt">&lt;/javaee:handler&gt;</span>
-  <span class="nt">&lt;/javaee:handler-chain&gt;</span>
-<span class="nt">&lt;/javaee:handler-chains&gt;</span>
-</pre></div>
-
-<p><a name="example_handler_server_handler_attach"></a></p>
-
-<h4>
-<a name="attach-handler-to-bookstorews" class="anchor" href="#attach-handler-to-bookstorews"><span class="octicon octicon-link"></span></a>Attach Handler to BookstoreWS</h4>
-
-<p>To attach above SOAP handler to web service ServerInfo.java, just annotate with @HandlerChain and specify the SOAP handler file name inside.</p>
-
-<div class="highlight highlight-Java"><pre><span class="c1">//...</span>
-
-<span class="nd">@WebService</span>
-<span class="nd">@HandlerChain</span><span class="o">(</span><span class="n">file</span> <span class="o">=</span> <span class="s">"handler-chain.xml"</span><span class="o">)</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">ServerInfoImpl</span> <span class="kd">implements</span> <span class="n">ServerInfo</span> <span class="o">{</span>
-
-<span class="c1">//...</span>
-</pre></div>
-
-<p><a name="example_handler_server_proj_dir_struct"></a></p>
-
-<h3>
-<a name="bookstorews-project-organization" class="anchor" href="#bookstorews-project-organization"><span class="octicon octicon-link"></span></a>BookstoreWS Project Organization</h3>
-
-<p>Here's the directory structure of the project</p>
-
-<p><img src="/img/soap/01-DirStruct.png" alt="Directory Structure"></p>
-
-<p><a name="example_handler_client"></a></p>
-
-<h2>
-<a name="client-side" class="anchor" href="#client-side"><span class="octicon octicon-link"></span></a>Client Side</h2>
-
-<p>Now we develop a Webservice Client for accessing to the <em>BookstoreWS</em>, and attach another handler (but on client side) for use WSCoL as post-condition validator and for manipulate SOAP messages.</p>
-
-<p><a name="example_handler_client_setup"></a></p>
-
-<h3>
-<a name="setup-1" class="anchor" href="#setup-1"><span class="octicon octicon-link"></span></a>Setup</h3>
-
-<p>For the setup and installation follow the same procedure as for the <a href="#example_handler_server_setup">server side</a></p>
-
-<p><a name="example_handler_client_wsclient"></a></p>
-
-<h3>
-<a name="ws-client" class="anchor" href="#ws-client"><span class="octicon octicon-link"></span></a>WS Client</h3>
-
-<p>We use <code>wsimport</code> command to parse the published service WSDL file (<em>http://localhost:8888/bookstorews/server?wsdl</em>) and generate all required files to access the service.</p>
-
-<pre><code>$ wsimport -keep -verbose http://localhost:8888/bookstorews/server?wsdl
-parsing WSDL...
-
-
-
-Generating code...
-
-it/polimi/bookstore/ws/GetAllBooksTitle.java
-it/polimi/bookstore/ws/GetAllBooksTitleResponse.java
-it/polimi/bookstore/ws/GetBookByIsbn.java
-it/polimi/bookstore/ws/GetBookByIsbnResponse.java
-it/polimi/bookstore/ws/GetBooksByAuthor.java
-it/polimi/bookstore/ws/GetBooksByAuthorResponse.java
-it/polimi/bookstore/ws/GetBooksByIsbnList.java
-it/polimi/bookstore/ws/GetBooksByIsbnListResponse.java
-it/polimi/bookstore/ws/GetBooksNumberPerAuthor.java
-it/polimi/bookstore/ws/GetBooksNumberPerAuthorResponse.java
-it/polimi/bookstore/ws/HashMapWrapper.java
-it/polimi/bookstore/ws/ObjectFactory.java
-it/polimi/bookstore/ws/ServerInfoImpl.java
-it/polimi/bookstore/ws/ServerInfoImplService.java
-it/polimi/bookstore/ws/package-info.java
-
-...
-</code></pre>
-
-<p>A client class and few methods that calls the web service and prints out the results.</p>
-
-<p><em>File: BookstoreWSClient.java</em></p>
-
-<div class="highlight highlight-Java"><pre><span class="kn">package</span> <span class="n">it</span><span class="o">.</span><span class="na">polimi</span><span class="o">.</span><span class="na">bookstore</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">java.util.ArrayList</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">javax.xml.ws.soap.SOAPFaultException</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">it.polimi.bookstore.ws.HashMapWrapper</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">it.polimi.bookstore.ws.ServerInfoImpl</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">it.polimi.bookstore.ws.ServerInfoImplService</span><span class="o">;</span>
-
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">BookstoreWSClient</span> <span class="o">{</span>
-
-    <span class="kd">private</span> <span class="kd">static</span> <span class="n">ServerInfoImplService</span> <span class="n">service</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="kd">static</span> <span class="n">ServerInfoImpl</span> <span class="n">ws</span><span class="o">;</span>
-
-    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">service</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ServerInfoImplService</span><span class="o">();</span>
-        <span class="n">ws</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="na">getServerInfoImplPort</span><span class="o">();</span>
-
-        <span class="n">testGetBooksByIsbnList</span><span class="o">();</span>
-        <span class="n">testGetBooksNumberPerAuthor</span><span class="o">();</span>
-
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">testGetBooksByIsbnList</span><span class="o">()</span> <span class="o">{</span>
-        <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">isbns</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
-        <span class="n">isbns</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">"0553380981"</span><span class="o">);</span> <span class="c1">// random</span>
-        <span class="n">isbns</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">"0871131811"</span><span class="o">);</span> <span class="c1">// "Zodiac"</span>
-        <span class="n">isbns</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">"012345678"</span><span class="o">);</span> <span class="c1">// a wrong isbn</span>
-
-        <span class="k">try</span> <span class="o">{</span>
-            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">ws</span><span class="o">.</span><span class="na">getBooksByIsbnList</span><span class="o">(</span><span class="n">isbns</span><span class="o">));</span>
-        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SOAPFaultException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">System</span><span class="o">.</span><span class="na">err</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"testGetBooksByIsbnList(): "</span> <span class="o">+</span> <span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-
-    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">testGetBooksNumberPerAuthor</span><span class="o">()</span> <span class="o">{</span>
-        <span class="n">HashMapWrapper</span> <span class="n">bnpa</span> <span class="o">=</span> <span class="n">ws</span><span class="o">.</span><span class="na">getBooksNumberPerAuthor</span><span class="o">();</span>
-        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"getBooksNumberPerAuthor() - Trendy Author Books Number: "</span> <span class="o">+</span> <span class="n">bnpa</span><span class="o">.</span><span class="na">getMap</span><span class="o">().</span><span class="na">getEntry</span><span class="o">().</span><span class="na">get</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="na">getValue</span><span class="o">());</span>
-    <span class="o">}</span>
-
-<span class="o">}</span>
-</pre></div>
-
-<p><a name="example_handler_client_handler"></a></p>
-
-<h3>
-<a name="client-soap-handler" class="anchor" href="#client-soap-handler"><span class="octicon octicon-link"></span></a>Client SOAP Handler</h3>
-
-<p>Create a SOAP Handler on client side for extract informations from the response message and manipulate it.<br>
-It intercepts the <code>getBooksNumberPerAuthorResponse</code> (that returns a Map with entries where keys are the authors name and values the number of book in the store written by that author) than with WSCoL we find the author with the maximum number of book and we modify the SOAP message and remove all the other entries.</p>
-
-<p><em>File: PostValidationHandler.java</em></p>
-
-<div class="highlight highlight-Java"><pre><span class="kn">package</span> <span class="n">it</span><span class="o">.</span><span class="na">polimi</span><span class="o">.</span><span class="na">bookstore</span><span class="o">.</span><span class="na">handler</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">it.polimi.wscol.WSCoLAnalyzer</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">it.polimi.wscol.helpers.WSCoLException</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">java.io.IOException</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">java.util.Set</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">javax.xml.namespace.QName</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.soap.SOAPBody</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.soap.SOAPException</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.soap.SOAPFault</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.soap.SOAPMessage</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.ws.handler.MessageContext</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.ws.handler.soap.SOAPHandler</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.ws.handler.soap.SOAPMessageContext</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">javax.xml.ws.soap.SOAPFaultException</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">org.w3c.dom.Node</span><span class="o">;</span>
-
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">PostValidationHandler</span> <span class="kd">implements</span> <span class="n">SOAPHandler</span><span class="o">&lt;</span><span class="n">SOAPMessageContext</span><span class="o">&gt;</span> <span class="o">{</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">handleMessage</span><span class="o">(</span><span class="n">SOAPMessageContext</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-
-        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"Client : handleMessage()......"</span><span class="o">);</span>
-
-        <span class="n">Boolean</span> <span class="n">isRequest</span> <span class="o">=</span> <span class="o">(</span><span class="n">Boolean</span><span class="o">)</span> <span class="n">context</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">MessageContext</span><span class="o">.</span><span class="na">MESSAGE_OUTBOUND_PROPERTY</span><span class="o">);</span>
-
-        <span class="k">if</span> <span class="o">(!</span><span class="n">isRequest</span><span class="o">)</span> <span class="o">{</span>
-
-            <span class="n">WSCoLAnalyzer</span> <span class="n">analyzer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">WSCoLAnalyzer</span><span class="o">();</span>
-            <span class="n">analyzer</span><span class="o">.</span><span class="na">shutdownLogger</span><span class="o">();</span>
-
-            <span class="k">try</span> <span class="o">{</span>
-                <span class="n">SOAPMessage</span> <span class="n">soapMsg</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="na">getMessage</span><span class="o">();</span>
-                <span class="n">SOAPBody</span> <span class="n">soapBody</span> <span class="o">=</span> <span class="n">soapMsg</span><span class="o">.</span><span class="na">getSOAPBody</span><span class="o">();</span>
-                <span class="n">Node</span> <span class="n">responseNode</span> <span class="o">=</span> <span class="n">soapBody</span><span class="o">.</span><span class="na">getFirstChild</span><span class="o">();</span>
-                <span class="n">String</span> <span class="n">name</span> <span class="o">=</span> <span class="n">responseNode</span><span class="o">.</span><span class="na">getLocalName</span><span class="o">();</span>
-                <span class="k">if</span> <span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">"getBooksNumberPerAuthorResponse"</span><span class="o">))</span> <span class="o">{</span>
-
-                    <span class="n">analyzer</span><span class="o">.</span><span class="na">setXMLInput</span><span class="o">(</span><span class="n">soapBody</span><span class="o">.</span><span class="na">getOwnerDocument</span><span class="o">());</span>
-
-                    <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> 
-                              <span class="s">"let $map_entries = /Envelope/Body/getBooksNumberPerAuthorResponse/return/map;"</span>
-                            <span class="o">+</span> <span class="s">"let $values = $map_entries/entry/value;"</span>
-                            <span class="o">+</span> <span class="s">"let $maximum = max($num in $values, $num &gt; 0);"</span>
-                            <span class="o">+</span> <span class="s">"let $author = $map_entries/entry[value==$maximum]/key;"</span>
-                            <span class="o">+</span> <span class="s">"1==1;"</span><span class="o">;</span> <span class="c1">// we're interested in variables</span>
-
-                    <span class="k">try</span> <span class="o">{</span>
-                        <span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">(</span><span class="n">assertion</span><span class="o">);</span>
-                        <span class="n">Object</span> <span class="n">author</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$author"</span><span class="o">);</span>
-
-                        <span class="n">Node</span> <span class="n">map</span> <span class="o">=</span> <span class="n">soapBody</span><span class="o">.</span><span class="na">getFirstChild</span><span class="o">().</span><span class="na">getFirstChild</span><span class="o">().</span><span class="na">getFirstChild</span><span class="o">();</span>
-                        <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">map</span><span class="o">.</span><span class="na">getChildNodes</span><span class="o">().</span><span class="na">getLength</span><span class="o">();</span> <span class="n">i</span><span class="o">++){</span>
-                            <span class="n">Node</span> <span class="n">child</span> <span class="o">=</span> <span class="n">map</span><span class="o">.</span><span class="na">getChildNodes</span><span class="o">().</span><span class="na">item</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
-                            <span class="k">if</span><span class="o">(!</span><span class="n">child</span><span class="o">.</span><span class="na">getFirstChild</span><span class="o">().</span><span class="na">getTextContent</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">author</span><span class="o">)){</span>
-                                <span class="n">map</span><span class="o">.</span><span class="na">removeChild</span><span class="o">(</span><span class="n">child</span><span class="o">);</span>
-                                <span class="n">i</span> <span class="o">-=</span> <span class="mi">1</span><span class="o">;</span>
-                            <span class="o">}</span>
-                        <span class="o">}</span>
-                    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">WSCoLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-                        <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
-                    <span class="o">}</span>
-
-                <span class="o">}</span>
-                <span class="c1">// tracking</span>
-                <span class="n">soapMsg</span><span class="o">.</span><span class="na">writeTo</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">);</span>
-
-            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SOAPException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-                <span class="n">System</span><span class="o">.</span><span class="na">err</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">e</span><span class="o">);</span>
-            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-                <span class="n">System</span><span class="o">.</span><span class="na">err</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">e</span><span class="o">);</span>
-            <span class="o">}</span>
-
-        <span class="o">}</span>
-        <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">handleFault</span><span class="o">(</span><span class="n">SOAPMessageContext</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"Client : handleFault()......"</span><span class="o">);</span>
-        <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">close</span><span class="o">(</span><span class="n">MessageContext</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"Client : close()......"</span><span class="o">);</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">QName</span><span class="o">&gt;</span> <span class="nf">getHeaders</span><span class="o">()</span> <span class="o">{</span>
-        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"Client : getHeaders()......"</span><span class="o">);</span>
-        <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="kd">private</span> <span class="kt">void</span> <span class="nf">generateSOAPErrMessage</span><span class="o">(</span><span class="n">SOAPMessage</span> <span class="n">msg</span><span class="o">,</span> <span class="n">String</span> <span class="n">reason</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">try</span> <span class="o">{</span>
-            <span class="n">SOAPBody</span> <span class="n">soapBody</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="na">getSOAPPart</span><span class="o">().</span><span class="na">getEnvelope</span><span class="o">().</span><span class="na">getBody</span><span class="o">();</span>
-            <span class="n">SOAPFault</span> <span class="n">soapFault</span> <span class="o">=</span> <span class="n">soapBody</span><span class="o">.</span><span class="na">addFault</span><span class="o">();</span>
-            <span class="n">soapFault</span><span class="o">.</span><span class="na">setFaultString</span><span class="o">(</span><span class="n">reason</span><span class="o">);</span>
-            <span class="k">throw</span> <span class="k">new</span> <span class="nf">SOAPFaultException</span><span class="o">(</span><span class="n">soapFault</span><span class="o">);</span>
-        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SOAPException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-
-<span class="o">}</span>
-</pre></div>
-
-<p><a name="example_handler_client_handler_xml"></a></p>
-
-<h3>
-<a name="client-soaphandler-xml-file" class="anchor" href="#client-soaphandler-xml-file"><span class="octicon octicon-link"></span></a>Client SOAPHandler XML File</h3>
-
-<p>Create a SOAP handler XML file, and puts your SOAP handler declaration.</p>
-
-<p><em>File: handler-chain.xml</em></p>
-
-<div class="highlight highlight-XML"><pre><span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;</span>
-<span class="nt">&lt;javaee:handler-chains</span> 
-     <span class="na">xmlns:javaee=</span><span class="s">"http://java.sun.com/xml/ns/javaee"</span> 
-     <span class="na">xmlns:xsd=</span><span class="s">"http://www.w3.org/2001/XMLSchema"</span><span class="nt">&gt;</span>
-  <span class="nt">&lt;javaee:handler-chain&gt;</span>
-    <span class="nt">&lt;javaee:handler&gt;</span>
-      <span class="nt">&lt;javaee:handler-class&gt;</span>it.polimi.bookstore.handler.PostValidationHandler<span class="nt">&lt;/javaee:handler-class&gt;</span>
-    <span class="nt">&lt;/javaee:handler&gt;</span>
-  <span class="nt">&lt;/javaee:handler-chain&gt;</span>
-<span class="nt">&lt;/javaee:handler-chains&gt;</span>
-</pre></div>
-
-<p><a name="example_handler_client_handler_attach"></a></p>
-
-<h4>
-<a name="attach-handler-to-bookstorews-1" class="anchor" href="#attach-handler-to-bookstorews-1"><span class="octicon octicon-link"></span></a>Attach Handler to BookstoreWS</h4>
-
-<p>To attach above SOAP handler to web service ServerInfo.java, just annotate with @HandlerChain and specify the SOAP handler file name inside.</p>
-
-<div class="highlight highlight-Java"><pre><span class="c1">//...</span>
-
-<span class="nd">@WebServiceClient</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"ServerInfoImplService"</span><span class="o">,</span> <span class="n">targetNamespace</span> <span class="o">=</span> <span class="s">"http://ws.bookstore.polimi.it/"</span><span class="o">,</span> <span class="n">wsdlLocation</span> <span class="o">=</span> <span class="s">"http://localhost:8888/bookstorews/server?wsdl"</span><span class="o">)</span>
-<span class="nd">@HandlerChain</span><span class="o">(</span><span class="n">file</span> <span class="o">=</span> <span class="s">"handler-chain.xml"</span><span class="o">)</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">ServerInfoImplService</span>
-    <span class="kd">extends</span> <span class="n">Service</span>
-<span class="o">{</span>
-
-
-<span class="c1">//...</span>
-</pre></div>
-
-<p><a name="example_handler_server_proj_dir_struct"></a></p>
-
-<h3>
-<a name="bookstorews-client-project-organization" class="anchor" href="#bookstorews-client-project-organization"><span class="octicon octicon-link"></span></a>BookstoreWS Client Project Organization</h3>
-
-<p>Here's the directory structure of the project
-<img src="/img/soap/02-ClientDirStruct.png" alt="Client Directory Structure"></p>
-
-<p><a name="example_handler_sources"></a></p>
-
-<h3>
-<a name="projects-sources" class="anchor" href="#projects-sources"><span class="octicon octicon-link"></span></a>Projects Sources</h3>
-
-<p>Both projects sources are available on GitHub at <a href="https://github.com/rbrunetti/WSCoL-Tutorial-SOAPHandlerWS">WSCoL-Tutorial-SOAPHandlerWS</a> and <a href="https://github.com/rbrunetti/WSCoL-Tutorial-SOAPHandler-Client">WSCoL-Tutorial-SOAPHandler-Client</a></p>
+<p>Productions with first capital letter are refers to rules, uppercase productions are terminals.</p>
       </section>
     </div>
 
     <!-- FOOTER  -->
     <div id="footer_wrap" class="outer">
       <footer class="inner">
-        <p class="copyright">WSCoL - Analyser maintained by <a href="https://github.com/rbrunetti">rbrunetti</a></p>
+        <p class="copyright">Specl - Analyser maintained by <a href="https://github.com/rbrunetti">rbrunetti</a></p>
         <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
       </footer>
     </div>

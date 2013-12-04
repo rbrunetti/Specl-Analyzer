@@ -178,6 +178,8 @@ Specl is a special-purpose assertion DSL for the expression of monitoring direct
 
 <p>For example, starting from the next XML and JSON code could be obtained a simple SDO.</p>
 
+<p>XML:</p>
+
 <div class="highlight highlight-XML"><pre><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
 <span class="nt">&lt;container&gt;</span>
     <span class="nt">&lt;elem1&gt;</span>String<span class="nt">&lt;/elem1&gt;</span>
@@ -196,6 +198,8 @@ Specl is a special-purpose assertion DSL for the expression of monitoring direct
     <span class="nt">&lt;/elem5&gt;</span>
 <span class="nt">&lt;/container&gt;</span>
 </pre></div>
+
+<p>JSON:</p>
 
 <div class="highlight highlight-JSON"><pre><span class="p">{</span>
     <span class="nt">"elem1"</span><span class="p">:</span> <span class="s2">"String"</span><span class="p">,</span>
@@ -247,35 +251,38 @@ Specl is a special-purpose assertion DSL for the expression of monitoring direct
 The following is the list of available functions (plus a short example for each one):</p>
 
 <h5>
-<a name="boolean-containsobject-elem-returns-true-if-the-object-is-contained-the-research--is-deep" class="anchor" href="#boolean-containsobject-elem-returns-true-if-the-object-is-contained-the-research--is-deep"><span class="octicon octicon-link"></span></a><strong>boolean contains(Object elem)</strong>: returns <em>true</em> if the object is contained (the research  is deep)</h5>
+<a name="boolean-containsobject-elem" class="anchor" href="#boolean-containsobject-elem"><span class="octicon octicon-link"></span></a><strong>boolean contains(Object elem)</strong>
+</h5>
 
-<p>returns true if an object with elem value is contained (the research is deep)</p>
+<p>returns <em>true</em> if an object with elem value is contained (the research is deep)</p>
 
 <pre><code>// search "Pocket" string in the first book of the inventory
 /inventory/book[1].contains("Pocket")
 </code></pre>
 
 <h5>
-<a name="object-getint-index-returns-the-value-of-the-index-th-node-the-first-has-index--1" class="anchor" href="#object-getint-index-returns-the-value-of-the-index-th-node-the-first-has-index--1"><span class="octicon octicon-link"></span></a><strong>Object get(int index)</strong>: returns the value of the <em>index</em>-th node (the first has index = 1)</h5>
+<a name="object-getint-index" class="anchor" href="#object-getint-index"><span class="octicon octicon-link"></span></a><strong>Object get(int index)</strong>
+</h5>
 
-<p>returns the value of the index-th node (the first element of the array has index equals to 1)</p>
+<p>returns the value of the <code>index</code>-th node (the first element of the array has index equals to 1)</p>
 
 <pre><code>// returns the first book of the inventory
 /inventory.get(1)
 </code></pre>
 
 <h5>
-<a name="object-getstring-node-returns-the-value-of-the-node-with-name-node" class="anchor" href="#object-getstring-node-returns-the-value-of-the-node-with-name-node"><span class="octicon octicon-link"></span></a><strong>Object get(String node)</strong>: returns the value of the node with name <em>node</em>
+<a name="object-getstring-node" class="anchor" href="#object-getstring-node"><span class="octicon octicon-link"></span></a><strong>Object get(String node)</strong>
 </h5>
 
-<p>returns the value of the node with name node</p>
+<p>returns the value of the node with name <code>node</code></p>
 
 <pre><code>// get the value of the key "name"
 /inventory.get("name")
 </code></pre>
 
 <h5>
-<a name="double-cardinality-returns-the-number-of-values-contained" class="anchor" href="#double-cardinality-returns-the-number-of-values-contained"><span class="octicon octicon-link"></span></a><strong>double cardinality()</strong>: returns the number of values contained</h5>
+<a name="double-cardinality" class="anchor" href="#double-cardinality"><span class="octicon octicon-link"></span></a><strong>double cardinality()</strong>
+</h5>
 
 <p>returns the number of elements contained</p>
 
@@ -296,7 +303,8 @@ The following is the list of available functions (plus a short example for each 
 <p>Available functions for arrays covers the basic general-purpose language functions for this kind of data type, working on elements or getting the size of the array:</p>
 
 <h5>
-<a name="boolean-containsobject-elem-returns-true-if-the-object-is-contained" class="anchor" href="#boolean-containsobject-elem-returns-true-if-the-object-is-contained"><span class="octicon octicon-link"></span></a><strong>boolean contains(Object elem)</strong>: returns <em>true</em> if the object is contained</h5>
+<a name="boolean-containsobject-elem-1" class="anchor" href="#boolean-containsobject-elem-1"><span class="octicon octicon-link"></span></a><strong>boolean contains(Object elem)</strong>
+</h5>
 
 <p>returns <em>true</em> if the passed elem object is contained</p>
 
@@ -305,7 +313,8 @@ The following is the list of available functions (plus a short example for each 
 </code></pre>
 
 <h5>
-<a name="object-getint-index-returns-the-index-th-element" class="anchor" href="#object-getint-index-returns-the-index-th-element"><span class="octicon octicon-link"></span></a><strong>Object get(int index)</strong>: returns the <em>index</em>-th element</h5>
+<a name="object-getint-index-1" class="anchor" href="#object-getint-index-1"><span class="octicon octicon-link"></span></a><strong>Object get(int index)</strong>
+</h5>
 
 <p>returns the <code>index</code>-th element of the array</p>
 
@@ -315,7 +324,8 @@ The following is the list of available functions (plus a short example for each 
 </code></pre>
 
 <h5>
-<a name="double-cardinality-returns-the-length-of-the-array" class="anchor" href="#double-cardinality-returns-the-length-of-the-array"><span class="octicon octicon-link"></span></a><strong>double cardinality()</strong>: returns the length of the array</h5>
+<a name="double-cardinality-1" class="anchor" href="#double-cardinality-1"><span class="octicon octicon-link"></span></a><strong>double cardinality()</strong>
+</h5>
 
 <p>returns the length of the array</p>
 
@@ -336,7 +346,8 @@ The following is the list of available functions (plus a short example for each 
 <p>Even in this case, the functions are simple and common in many other contexts:</p>
 
 <h5>
-<a name="string-uppercase-turns-every-character-to-uppercase" class="anchor" href="#string-uppercase-turns-every-character-to-uppercase"><span class="octicon octicon-link"></span></a><strong>String uppercase()</strong>: turns every character to uppercase</h5>
+<a name="string-uppercase" class="anchor" href="#string-uppercase"><span class="octicon octicon-link"></span></a><strong>String uppercase()</strong>
+</h5>
 
 <p>turns every character to uppercase</p>
 
@@ -345,7 +356,8 @@ The following is the list of available functions (plus a short example for each 
 </code></pre>
 
 <h5>
-<a name="string-lowecase-turns-every-character-to-lowercase" class="anchor" href="#string-lowecase-turns-every-character-to-lowercase"><span class="octicon octicon-link"></span></a><strong>String lowecase()</strong>: turns every character to lowercase</h5>
+<a name="string-lowecase" class="anchor" href="#string-lowecase"><span class="octicon octicon-link"></span></a><strong>String lowecase()</strong>
+</h5>
 
 <p>turns every character to lowercase</p>
 
@@ -354,7 +366,8 @@ The following is the list of available functions (plus a short example for each 
 </code></pre>
 
 <h5>
-<a name="double-length-returns-the-length-of-the-string" class="anchor" href="#double-length-returns-the-length-of-the-string"><span class="octicon octicon-link"></span></a><strong>double length()</strong>: returns the length of the string</h5>
+<a name="double-length" class="anchor" href="#double-length"><span class="octicon octicon-link"></span></a><strong>double length()</strong>
+</h5>
 
 <p>returns the length of the string</p>
 
@@ -363,7 +376,7 @@ The following is the list of available functions (plus a short example for each 
 </code></pre>
 
 <h5>
-<a name="boolean-startswithstring-prefix-returns-true-if-the-string-starts-with-prefix" class="anchor" href="#boolean-startswithstring-prefix-returns-true-if-the-string-starts-with-prefix"><span class="octicon octicon-link"></span></a><strong>boolean startsWith(String prefix)</strong>: returns <em>true</em> if the string starts with <em>prefix</em>
+<a name="boolean-startswithstring-prefix" class="anchor" href="#boolean-startswithstring-prefix"><span class="octicon octicon-link"></span></a><strong>boolean startsWith(String prefix)</strong>
 </h5>
 
 <p>returns <em>true</em> if the string starts with <code>prefix</code></p>
@@ -373,7 +386,7 @@ The following is the list of available functions (plus a short example for each 
 </code></pre>
 
 <h5>
-<a name="boolean-endswithstring-suffix-returns-true-if-the-string-ends-with-prefix" class="anchor" href="#boolean-endswithstring-suffix-returns-true-if-the-string-ends-with-prefix"><span class="octicon octicon-link"></span></a><strong>boolean endsWith(String suffix)</strong>: returns <em>true</em> if the string ends with <em>prefix</em>
+<a name="boolean-endswithstring-suffix" class="anchor" href="#boolean-endswithstring-suffix"><span class="octicon octicon-link"></span></a><strong>boolean endsWith(String suffix)</strong>
 </h5>
 
 <p>returns <em>true</em> if the string ends with <code>suffix</code></p>
@@ -383,7 +396,7 @@ The following is the list of available functions (plus a short example for each 
 </code></pre>
 
 <h5>
-<a name="boolean-containsstring-s-returns-true-if-the-string-contains-s" class="anchor" href="#boolean-containsstring-s-returns-true-if-the-string-contains-s"><span class="octicon octicon-link"></span></a><strong>boolean contains(String s)</strong>: returns <em>true</em> if the string contains <em>s</em>
+<a name="boolean-containsstring-s" class="anchor" href="#boolean-containsstring-s"><span class="octicon octicon-link"></span></a><strong>boolean contains(String s)</strong>
 </h5>
 
 <p>returns <em>true</em> if the string contains <code>s</code></p>
@@ -393,7 +406,8 @@ The following is the list of available functions (plus a short example for each 
 </code></pre>
 
 <h5>
-<a name="string-concatstring-s1-string-s2--returns-string-with-concatenated-s1-s2-etc" class="anchor" href="#string-concatstring-s1-string-s2--returns-string-with-concatenated-s1-s2-etc"><span class="octicon octicon-link"></span></a><strong>String concat(String s1, String s2, ...)</strong>: returns String with concatenated <em>s1</em>, <em>s2</em>, etc...</h5>
+<a name="string-concatstring-s1-string-s2-" class="anchor" href="#string-concatstring-s1-string-s2-"><span class="octicon octicon-link"></span></a><strong>String concat(String s1, String s2, ...)</strong>
+</h5>
 
 <p>returns the concatenation of the string with <code>s1</code>, <code>s2</code>, etc...</p>
 
@@ -402,7 +416,7 @@ The following is the list of available functions (plus a short example for each 
 </code></pre>
 
 <h5>
-<a name="string-substringint-beginindex-int-endindex-returns-the-substring-from-beginindex-to-endindex" class="anchor" href="#string-substringint-beginindex-int-endindex-returns-the-substring-from-beginindex-to-endindex"><span class="octicon octicon-link"></span></a><strong>String substring(int beginIndex, int endIndex)</strong>: returns the substring from <em>beginIndex</em> to <em>endIndex</em>
+<a name="string-substringint-beginindex-int-endindex" class="anchor" href="#string-substringint-beginindex-int-endindex"><span class="octicon octicon-link"></span></a><strong>String substring(int beginIndex, int endIndex)</strong>
 </h5>
 
 <p>extracts the characters, between two specified indexes, and returns the new substring</p>
@@ -412,7 +426,7 @@ The following is the list of available functions (plus a short example for each 
 </code></pre>
 
 <h5>
-<a name="string-replacestring-target-string-replacement-replace-every-occurrence-of-target-with-replacement" class="anchor" href="#string-replacestring-target-string-replacement-replace-every-occurrence-of-target-with-replacement"><span class="octicon octicon-link"></span></a><strong>String replace(String target, String replacement)</strong>: replace every occurrence of <em>target</em> with <em>replacement</em>
+<a name="string-replacestring-target-string-replacement" class="anchor" href="#string-replacestring-target-string-replacement"><span class="octicon octicon-link"></span></a><strong>String replace(String target, String replacement)</strong>
 </h5>
 
 <p>replace every occurrence of target with replacement</p>
@@ -434,7 +448,8 @@ The following is the list of available functions (plus a short example for each 
 <p>For numbers, the available functions can be used for manipulations and rounding. The list is a subset of the functions offered by XPath.</p>
 
 <h5>
-<a name="double-abs-apply-abs-to-the-number" class="anchor" href="#double-abs-apply-abs-to-the-number"><span class="octicon octicon-link"></span></a><strong>double abs()</strong>: apply <em>abs</em> to the number</h5>
+<a name="double-abs" class="anchor" href="#double-abs"><span class="octicon octicon-link"></span></a><strong>double abs()</strong>
+</h5>
 
 <p>gives the absolute value of the number on which it is applied</p>
 
@@ -443,7 +458,8 @@ $a.abs() // result is 1.0
 </code></pre>
 
 <h5>
-<a name="double-ceiling-returns-the-smallest-integer-that-is-greater-than-the-number-argument" class="anchor" href="#double-ceiling-returns-the-smallest-integer-that-is-greater-than-the-number-argument"><span class="octicon octicon-link"></span></a><strong>double ceiling()</strong>: returns the smallest integer that is greater than the number argument</h5>
+<a name="double-ceiling" class="anchor" href="#double-ceiling"><span class="octicon octicon-link"></span></a><strong>double ceiling()</strong>
+</h5>
 
 <p>returns the smallest integer that is greater than the number argument</p>
 
@@ -452,7 +468,8 @@ $a.abs() // result is 1.0
 </code></pre>
 
 <h5>
-<a name="double-floor-returns-the-largest-integer-that-is-not-greater-than-the-number-argument" class="anchor" href="#double-floor-returns-the-largest-integer-that-is-not-greater-than-the-number-argument"><span class="octicon octicon-link"></span></a><strong>double floor()</strong>: returns the largest integer that is not greater than the number argument</h5>
+<a name="double-floor" class="anchor" href="#double-floor"><span class="octicon octicon-link"></span></a><strong>double floor()</strong>
+</h5>
 
 <p>returns the largest integer that is not greater than the number argument</p>
 
@@ -461,7 +478,8 @@ $a.abs() // result is 1.0
 </code></pre>
 
 <h5>
-<a name="double-round-rounds-the-number-argument-to-the-nearest-integer" class="anchor" href="#double-round-rounds-the-number-argument-to-the-nearest-integer"><span class="octicon octicon-link"></span></a><strong>double round()</strong>: rounds the number argument to the nearest integer</h5>
+<a name="double-round" class="anchor" href="#double-round"><span class="octicon octicon-link"></span></a><strong>double round()</strong>
+</h5>
 
 <p>rounds the number argument to the nearest integer</p>
 
@@ -470,7 +488,8 @@ $a.abs() // result is 1.0
 </code></pre>
 
 <h5>
-<a name="double-roundhalftoeven-rounds-a-number-with-5-fraction-to-the-nearest-even-integer" class="anchor" href="#double-roundhalftoeven-rounds-a-number-with-5-fraction-to-the-nearest-even-integer"><span class="octicon octicon-link"></span></a><strong>double roundHalfToEven()</strong>: rounds a number with .5 fraction to the nearest even integer</h5>
+<a name="double-roundhalftoeven" class="anchor" href="#double-roundhalftoeven"><span class="octicon octicon-link"></span></a><strong>double roundHalfToEven()</strong>
+</h5>
 
 <p>rounds a number with .5 fraction to the nearest even integer</p>
 
@@ -479,7 +498,8 @@ $a.abs() // result is 1.0
 </code></pre>
 
 <h5>
-<a name="string-tostring-returns-the-string-representation-of-the-number" class="anchor" href="#string-tostring-returns-the-string-representation-of-the-number"><span class="octicon octicon-link"></span></a><strong>String toString()</strong>: returns the string representation of the number</h5>
+<a name="string-tostring" class="anchor" href="#string-tostring"><span class="octicon octicon-link"></span></a><strong>String toString()</strong>
+</h5>
 
 <p>returns the string representation of the number</p>
 

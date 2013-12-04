@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Specl - Analyser : An Assertion Language for Service Data Object" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Specl - Analyser</title>
+  </head>
+
+  <body>
+    
+    <a id="btt" href="#main_content_wrap" title="Click to go to top">&nbsp;<img src="images/btt.png" /></a>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/rbrunetti/Specl-Analyser">View on GitHub</a>
+
+          <h1 id="project_title">Specl - Analyser</h1>
+          <h2 id="project_tagline">An Assertion Language for Service Data Object</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/rbrunetti/Specl-Analyser/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/rbrunetti/Specl-Analyser/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+            
+          <nav>
+            <ul>
+              <li><a href="index.html">Home</a></li>
+              <li>Examples
+                <ul>
+                  <li><a href="bookstore.html">Didactic Example</a></li>
+                  <li><a href="soaphandler.html">SOAP Handler</a></li>
+                  <li><a href="twitterrest.html">Twitter REST</a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+
+<h1>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Didactic Example</h1>
+
+<p><em>Specl</em> is a very flexible language and for this reason it could be used in various contexts.</p>
+
+<p>In the following sections you’ll find out some nice application.</p>
+
+<p><a name="toc"></a></p>
+
+<h2>
+<a name="table-of-content-1" class="anchor" href="#table-of-content-1"><span class="octicon octicon-link"></span></a>Table of Content</h2>
+
+<ul>
+<li>
+<a href="#setup">Setup</a>
+
+<ul>
+<li><a href="#download">Download</a></li>
+<li><a href="#install">Install</a></li>
+<li><a href="#struct">Project's Structure</a></li>
+<li><a href="#java_class">Main Java Class</a></li>
+</ul>
+</li>
+<li>
+<a href="#did_example">Didactic Example - BookStore</a>
+
+<ul>
+<li><a href="#example_toy_1">First Assertion</a></li>
+<li><a href="#example_toy_2">Second Assertion</a></li>
+<li><a href="#example_toy_3">Third Assertion</a></li>
+<li><a href="#example_toy_4">Fourth Assertion</a></li>
+<li><a href="#example_toy_5">Fifth Assertion</a></li>
+</ul>
+</li>
+</ul><p><a name="setup"></a></p>
+
+<h2>
+<a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>Setup</h2>
+
+<p>In the next few lines we describe how to includes the proper libraries into a generic Java project for exploits the characteristics of Specl.</p>
+
+<p><a name="download"></a></p>
+
+<h3>
+<a name="download" class="anchor" href="#download"><span class="octicon octicon-link"></span></a>Download</h3>
+
+<p>Start from getting the jar libraries from this <a href="#">link</a>.</p>
+
+<p>The required libraries are:</p>
+
+<ul>
+<li>SpeclAnalyzer.jar</li>
+<li>Specl.jar</li>
+<li>json-simple-1.1.1.jar</li>
+</ul><p><a name="install"></a></p>
+
+<h3>
+<a name="install" class="anchor" href="#install"><span class="octicon octicon-link"></span></a>Install</h3>
+
+<p>Create a <em>lib</em> folder into your project's main folder, add the download libraries and add them to the <em>Build Path</em> of the project.</p>
+
+<img src="img/bookstore/00-AddBuildPath.png" alt="Importing Libraries" />
+
+<p><a name="struct"></a></p>
+
+<h3>
+<a name="projects-structure" class="anchor" href="#projects-structure"><span class="octicon octicon-link"></span></a>Project's Structure</h3>
+
+<p>The structure of our project is the following:</p>
+
+<pre><code>.
+|-- lib
+|   |-- json-simple-1.1.1.jar
+|   |-- SpeclAnalyzer.jar
+|   `-- Specl.jar
+`-- src
+    `-- it
+        `-- polimi
+            |-- book.xml
+            |-- conditions.specl
+            `-- SpeclTestings.java
+</code></pre>
+
+<p>Viewed from Eclipse IDE:</p>
+
+<img src="img/bookstore/01-ProjStruct.png" alt="Project Structure" />
+        
+<p><a name="java_class"></a></p>
+
+<h3>
+<a name="main-java-class" class="anchor" href="#main-java-class"><span class="octicon octicon-link"></span></a>Main Java Class</h3>
+
+<p>We generate and use the test a simple Java class: it simply parse <em>book.xml</em> and passes it to the analyzer (<code>analyzer.setXMLInput(book.xml)</code>), then passes the <em>conditions.specl</em> file, containing the assertions, to the analyzer that checks it and produces some result (<code>analyzer.evaluate(conditions)</code>).</p>
+
+<p>The test class <code>SpeclTestings.java</code>:</p>
+
+<div class="highlight highlight-Java"><pre><span class="kn">package</span> <span class="n">it</span><span class="o">.</span><span class="na">polimi</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.io.File</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.IOException</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">javax.xml.parsers.DocumentBuilder</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">javax.xml.parsers.DocumentBuilderFactory</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">javax.xml.parsers.ParserConfigurationException</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">org.w3c.dom.Document</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.xml.sax.SAXException</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">it.polimi.specl.SpeclAnalyzer</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">it.polimi.specl.helpers.SpeclException</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">SpeclTestings</span> <span class="o">{</span>
+    <span class="kd">static</span> <span class="n">SpeclAnalyzer</span> <span class="n">analyzer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SpeclAnalyzer</span><span class="o">();</span>
+
+    <span class="c1">// the path of the input file</span>
+    <span class="kd">static</span> <span class="n">String</span> <span class="n">inputPath</span> <span class="o">=</span> <span class="s">"src/it/polimi/book.xml"</span><span class="o">;</span>
+
+    <span class="c1">// the path of the file with Specl's assertions</span>
+    <span class="kd">static</span> <span class="n">String</span> <span class="n">conditions</span> <span class="o">=</span> <span class="s">"src/it/polimi/conditions.specl"</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+
+        <span class="c1">// we obtain a document from the XML file and pass it as input to the analyzer</span>
+        <span class="n">DocumentBuilderFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="n">DocumentBuilderFactory</span><span class="o">.</span><span class="na">newInstance</span><span class="o">();</span>
+        <span class="n">DocumentBuilder</span> <span class="n">builder</span><span class="o">;</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">builder</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="na">newDocumentBuilder</span><span class="o">();</span>
+            <span class="n">Document</span> <span class="n">doc</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="na">parse</span><span class="o">(</span><span class="k">new</span> <span class="n">File</span><span class="o">(</span><span class="n">inputPath</span><span class="o">));</span>
+            <span class="n">doc</span><span class="o">.</span><span class="na">getDocumentElement</span><span class="o">().</span><span class="na">normalize</span><span class="o">();</span>
+            <span class="n">analyzer</span><span class="o">.</span><span class="na">setXMLInput</span><span class="o">(</span><span class="n">doc</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ParserConfigurationException</span> <span class="n">e2</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">e2</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SAXException</span> <span class="o">|</span> <span class="n">IOException</span> <span class="n">e1</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">e1</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+        <span class="o">}</span>
+
+        <span class="c1">// set the assertions file</span>
+        <span class="n">analyzer</span><span class="o">.</span><span class="na">setSpeclFilePath</span><span class="o">(</span><span class="n">conditions</span><span class="o">);</span>
+
+        <span class="c1">// evaluate the assertions, if runtime errors are thrown they'll be catched and printed</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SpeclException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">System</span><span class="o">.</span><span class="na">err</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+</pre></div>
+
+<p><a name="did_example"></a></p>
+
+<h2>
+<a name="didactic-example-bookstore" class="anchor" href="#didactic-example-bookstore"><span class="octicon octicon-link"></span></a>Didactic example: <em>Bookstore</em>
+</h2>
+
+<p>Just a little case to understand better about what we’re talking about. Starting from the presentation of the input file we are going to use, we pass then through a step-by-step exemplification of the language features and we will cover almost the whole set of its capabilitites.</p>
+
+<p>The input file is the succeeding xml file, <strong><em>book.xml</em></strong>:</p>
+
+<div class="highlight highlight-XML"><pre><span class="nt">&lt;inventory&gt;</span>
+    <span class="nt">&lt;name&gt;</span>InventoryABCD<span class="nt">&lt;/name&gt;</span>
+    <span class="nt">&lt;book&gt;</span>
+        <span class="nt">&lt;year&gt;</span>2000<span class="nt">&lt;/year&gt;</span>
+        <span class="nt">&lt;title&gt;</span>Snow Crash<span class="nt">&lt;/title&gt;</span>
+        <span class="nt">&lt;authors&gt;</span>
+            <span class="nt">&lt;author&gt;</span>Neal Stephenson<span class="nt">&lt;/author&gt;</span>
+        <span class="nt">&lt;/authors&gt;</span>
+        <span class="nt">&lt;publisher&gt;</span>Spectra<span class="nt">&lt;/publisher&gt;</span>
+        <span class="nt">&lt;isbn&gt;</span>0553380958<span class="nt">&lt;/isbn&gt;</span>
+        <span class="nt">&lt;price&gt;</span>15<span class="nt">&lt;/price&gt;</span>
+    <span class="nt">&lt;/book&gt;</span>
+    <span class="nt">&lt;book&gt;</span>
+        <span class="nt">&lt;year&gt;</span>2005<span class="nt">&lt;/year&gt;</span>
+        <span class="nt">&lt;title&gt;</span>Burning Tower<span class="nt">&lt;/title&gt;</span>
+        <span class="nt">&lt;authors&gt;</span>
+            <span class="nt">&lt;author&gt;</span>Larry Niven<span class="nt">&lt;/author&gt;</span>
+            <span class="nt">&lt;author&gt;</span>Jerry Pournelle<span class="nt">&lt;/author&gt;</span>
+        <span class="nt">&lt;/authors&gt;</span>
+        <span class="nt">&lt;publisher&gt;</span>Pocket<span class="nt">&lt;/publisher&gt;</span>
+        <span class="nt">&lt;isbn&gt;</span>0743416910<span class="nt">&lt;/isbn&gt;</span>
+        <span class="nt">&lt;price&gt;</span>6<span class="nt">&lt;/price&gt;</span>
+    <span class="nt">&lt;/book&gt;</span>
+    <span class="nt">&lt;book&gt;</span>
+        <span class="nt">&lt;year&gt;</span>1995<span class="nt">&lt;/year&gt;</span>
+        <span class="nt">&lt;title&gt;</span>Zodiac<span class="nt">&lt;/title&gt;</span>
+        <span class="nt">&lt;authors&gt;</span>
+            <span class="nt">&lt;author&gt;</span>Neal Stephenson<span class="nt">&lt;/author&gt;</span>
+        <span class="nt">&lt;/authors&gt;</span>
+        <span class="nt">&lt;publisher&gt;</span>Spectra<span class="nt">&lt;/publisher&gt;</span>
+        <span class="nt">&lt;isbn&gt;</span>0871131811<span class="nt">&lt;/isbn&gt;</span>
+        <span class="nt">&lt;price&gt;</span>7.50<span class="nt">&lt;/price&gt;</span>
+    <span class="nt">&lt;/book&gt;</span>
+<span class="nt">&lt;/inventory&gt;</span>
+</pre></div>
+
+<p>The corresponding SDO representation is:</p>
+
+<pre><code>{
+  Inventory = 
+    {
+      name = InventoryABCD,
+      book= 
+        [
+          {
+            year = 2000.0,
+            title = Snow Crash,
+            authors = 
+              {
+                author = Neal Stephenson
+              }
+            publisher = Spectra,
+            isbn = 0553380958,
+            price = 15.0
+          },
+          {
+            year = 2005.0,
+            title = Burning Tower,
+            authors = 
+              {
+                author = 
+                  [
+                    Larry Niven,
+                    Jerry Pournelle
+                  ]
+              },
+            publisher = Pocket,
+            isbn = 0743416910,
+            price = 6.0
+          },
+          {
+            year = 1995.0,
+            title = Zodiac,
+            authors = 
+              {
+                author = Neal Stephenson
+              },
+            publisher = Spectra,
+            isbn = 0871131811,
+            price = 7.5
+          }
+        ]
+    }
+}
+</code></pre>
+
+<p>The following assertions are based on this file.</p>
+
+<p><a name="example_toy_1"></a></p>
+
+<h2>
+<a name="first-assertion" class="anchor" href="#first-assertion"><span class="octicon octicon-link"></span></a>First Assertion</h2>
+
+<p>Now we have to generate a specl file with the assertions to verify.</p>
+
+<p>For convenience just save <strong><em>conditions.specl</em></strong> in the same folder as the xml file and the application jar, then copy-and-paste the next assertion:</p>
+
+<pre><code>/inventory/book[1]/title == "Snow Crash";
+</code></pre>
+
+<p>Launch the application!</p>
+
+<p>The results that appears on the console are</p>
+
+<pre lang="Shell"><code> INFO - ***** Specl Analyser *****
+ INFO - 0 declarations found
+ INFO - 2 assertions found
+ INFO - DECLARATION EVALUATION
+ INFO - ASSERTION EVALUATION
+ INFO - Assertion '/inventory/book[1.0]/title == Snow Crash' is verified.
+ INFO - RESULT: true
+</code></pre>
+
+<p>The assertion says that the title of the first book (note the use of the predicate in square brackets) is equal to <code>“Snow Crash”</code> and, obviously, the result is <em>true</em>.<br>
+The expression returns a string and correctly compare it with the string on the right side that we have written.<br>
+Due to the flexibility of Specl, the same assertion can be written in different manners:</p>
+
+<pre><code>/* Alternative 1 */
+let $a = /inventory/book[1]/title;
+let $b = “Snow Crash”;
+$a == $b; 
+</code></pre>
+
+<p>In this case the result of the expression is stored in the variable <code>$a</code>, while our string is in <code>$b</code>.<br>
+Then the assertion simply test the equality of the two.</p>
+
+<pre><code>/* Alternative 2 */
+let $a = /inventory/book[1];
+$a/title == “Snow Crash”;
+</code></pre>
+
+<p>Instead, in the alternative two, the value assigned to the variable <code>$a</code> is an <a href="index.html#sdo"><em>SDO</em></a>, i.e. an object containing other objects (as you can see from the xml file, a book holds nodes like <em>title</em>, <em>authors</em>, <em>publisher</em>, etc…).<br>
+A representation of the <em>SDO</em> defined by <code>$a</code> is</p>
+
+<pre><code>$a = {
+    year = 2000,
+    title = ”Snow Crash”,
+    authors = {
+        author = ”Neal Stephenson”
+    },
+    publisher = ”Spectra”,
+    isbn = ”0553380958”,
+    price = 15
+}
+</code></pre>
+
+<p>With the expression <code>$a/title</code> we get the string contained by the property title.</p>
+
+<p>avigational expressions are useful and can be defined with a good flexibility for reaching almost all the user’s needs.</p>
+
+<p>However, there are some exceptions: for example, you cannot apply a predicate to a variable or use a variable in steps that is not the first.</p>
+
+<p>Just for example, the statement <code>$a[key==1]</code> is not allowed, because predicates are syntax to use in the context of path expressions. The correct way to resolve this is to use the predicate during the variable definition, otherwise, another solution is to use the function <code>get</code> when the object is an SDO or an array: <code>$a.get("key")</code>.</p>
+
+<p>An example of the second erroneous use of navigational expression could be <code>/inventory/$a</code>: the variable could be used only in the first step (so when it could be treated as an SDO, from which the navigation path could start), but not in succeeding steps. Even in this situation, if the user wants to extract a certain value given the key, the solution could be the <code>get</code> function (<code>/inventory.get($a)</code>).</p>
+
+<p>Note that the use of function get is possible when you apply it to an SDO or to an array; it has no sense when the cardinality of the object is one. The function is not intended to substitute the standard navigation, so it has to be used properly.</p>
+
+<pre><code>/* Wrong use of predicate */
+let $a = /inventory/book;
+$a[1]/title == “Snow Crash”;
+</code></pre>
+
+<pre><code>/* Correct way */
+let $a = /inventory/book;
+$a.get(1).get(‘title’) == “Snow Crash”;
+</code></pre>
+
+<p>Another possible alternative to the first assertion is the next one</p>
+
+<pre><code>/* Alternative 3 – Array */
+let $a = /inventory/book/title;
+$a.get(1) == “Snow Crash”;
+</code></pre>
+
+<p>In this situation, the declaration’s result is an array with the titles of all the books found:<code>$a = [“Snow Crash”, “Burning Tower” “Zodiac”]</code>.<br>
+Then, with the <code>get()</code> function, you obtain the first element of the array: <code>“Snow Crash”</code>.</p>
+
+<p><a name="example_toy_2"></a></p>
+
+<h2>
+<a name="second-assertion---aggregated-functions" class="anchor" href="#second-assertion---aggregated-functions"><span class="octicon octicon-link"></span></a>Second Assertion - Aggregated Functions</h2>
+
+<pre><code>let $books = /inventory/book;
+let $authors = $books/authors/author;
+exists($author in $authors, numOf($book in $books, $book/authors.contains($author)) &gt; 1);
+</code></pre>
+
+<p>In this case, we are looking for the authors that has written more than one book.
+The declarations returns, respectively, the array containing all books and the array with all the authors.<br>
+The assertion is the result of the nesting of two quantified assertions.<br>
+The <code>exists</code> assertion starts iterating over the elements of the <em>authors</em> array, and, for each <em>author</em>, checks the condition. The condition is a comparison between another quantified assertion (this time a <code>numOf</code>) which returns a number that as to be greater than one to prove the condition of the <code>exists</code>.<br>
+The <code>numOf</code> iterate over all the <em>books</em>, obtains the <em>authors</em> of each <em>book</em> and, with the <code>contains()</code> function, check if the actual <em>author</em> we are searching is into that book’s authors array.<br>
+The external assertion has to be true; as already said, this is implicitly deducted from the grammar.</p>
+
+<p><a name="example_toy_3"></a></p>
+
+<h2>
+<a name="third-assertion---negated-assertion" class="anchor" href="#third-assertion---negated-assertion"><span class="octicon octicon-link"></span></a>Third Assertion - Negated Assertion</h2>
+
+<pre><code>/* Negated Assertion */
+let $books = /inventory/book;
+!( exists($book in $books, $book/title.startsWith($book/publisher.substring(0,1))) );
+</code></pre>
+
+<p>This one assert that there is no <em>books</em> which <em>title</em> starts with the same letter as its <em>publisher</em>.<br>
+As you can see, the <code>exists</code> assertion is negated (inside brackets and preceded by the exclamation mark <code>!(...)</code>).<br>
+The <code>startsWith()</code> bear out the prefix of the book <em>title</em> using as parameter the result of another expression: after getting the book <em>publisher</em>, it takes the first letter by the use of the <code>substring()</code> function.<br></p>
+
+<p><a name="example_toy_4"></a></p>
+
+<h2>
+<a name="fourth-assertion---numeric-aggregate-functions" class="anchor" href="#fourth-assertion---numeric-aggregate-functions"><span class="octicon octicon-link"></span></a>Fourth Assertion - Numeric Aggregate Functions</h2>
+
+<pre><code>/* Test for arithmetic expressions (min, max, avg...) */
+let $prices = /inventory/book/price;
+let $min = min($price in $prices, $price &gt; 0);
+let $max = max($price in $prices, $price &gt; 0);
+let $avg = avg($price in $prices, $price &gt; 0);
+let $prod = product($price in $prices, $price &gt; 0);
+let $sum = sum($price in $prices, $price &gt; 0);
+$min == 6.00 &amp;&amp; $max == 15 &amp;&amp; $avg == 9.5 || $prod &gt; 675.0 &amp;&amp; $sum &lt; 28.5;
+</code></pre>
+
+<p>Here we declare many variables, each of them is containing a number, related to the relative expression: for example, <code>$min</code> contains the minimum <em>price</em>, in the range of the array <code>$prices</code>, that is greater than zero (this condition is very weak, so the expression simply means ‘search the lowest price’). The same reasoning can be done for the other statements.<br>
+The assertions section presents logical operators AND (<code>&amp;&amp;</code>) and an OR operator (<code>||</code>): according to the operators priority, the AND operators comes first, so the OR is applied as showed:</p>
+
+<pre><code>($min == 6.00 &amp;&amp; $max == 15 &amp;&amp; $avg == 9.5) || ($prod &gt; 675.0 &amp;&amp; $sum &lt; 28.5)
+</code></pre>
+
+<p>Different orders are indicated with the use of bracket, as in the next snippet:</p>
+
+<pre><code>$min == 6.00 &amp;&amp; $max == 15 &amp;&amp; ($avg == 9.5 || $prod &gt; 675.0) &amp;&amp; $sum &lt; 28.5
+</code></pre>
+
+<p><a name="example_toy_5"></a></p>
+
+<h3>
+<a name="fifth-assertion---expressions" class="anchor" href="#fifth-assertion---expressions"><span class="octicon octicon-link"></span></a>Fifth Assertion - Expressions</h3>
+
+<pre><code>let $exp = 1 + 2 * 4 % 5;
+exp == 4;
+</code></pre>
+
+<p>Specl gives also the possibility to use and evaluate numeric expressions (see <a href="index.html#num_expr">Numeric Expression</a>)</p>
+
+<pre><code>let $first_price = /inventory/book[1]/price;
+$first_price + /inventory/book[2]/price &gt; /inventory/book[3]/price;
+</code></pre>
+        </section>
+      </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Specl - Analyser maintained by <a href="https://github.com/rbrunetti">rbrunetti</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>

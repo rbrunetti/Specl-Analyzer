@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Specl - Analyser : An Assertion Language for Service Data Object" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Specl - Analyser</title>
+  </head>
+
+  <body>
+    
+    <a id="btt" href="#main_content_wrap" title="Click to go to top">&nbsp;<img src="images/btt.png" /></a>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/rbrunetti/Specl-Analyser">View on GitHub</a>
+
+          <h1 id="project_title">Specl - Analyser</h1>
+          <h2 id="project_tagline">An Assertion Language for Service Data Object</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/rbrunetti/Specl-Analyser/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/rbrunetti/Specl-Analyser/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+            
+          <nav>
+            <ul>
+              <li><a href="index.html">Home</a></li>
+              <li>Examples
+                <ul>
+                  <li><a href="bookstore.html">Didactic Example</a></li>
+                  <li><a href="soaphandler.html">SOAP Handler</a></li>
+                  <li><a href="twitterrest.html">Twitter REST</a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        
+        <h1>
+<a name="specl-tutorial-twitter-rest" class="anchor" href="#specl-tutorial-twitter-rest"><span class="octicon octicon-link"></span></a>Specl-Tutorial-Twitter-REST</h1>
+
+<p>Show one of the possible use of <a href="http://samguinea.github.io/Specl">Specl</a>: retrieving data from the JSON obtained via Twitter's REST API v1.1.</p>
+
+<h2>
+<a name="table-of-content" class="anchor" href="#table-of-content"><span class="octicon octicon-link"></span></a>Table of Content</h2>
+
+<ol>
+<li><a href="#intro">Intro</a></li>
+<li>
+<a href="#setup">Setup</a>
+
+<ol>
+<li><a href="#download-libraries">Download Libraries</a></li>
+<li><a href="#installation">Installation</a></li>
+</ol>
+</li>
+<li><a href="#twitter-application-registration">Twitter Application Registration</a></li>
+<li>
+<a href="#code">Code</a>
+
+<ul>
+<li><a href="#authentication-process">Authentication Process</a></li>
+<li>
+<a href="#fetch-data">Fetch Data</a>
+
+<ul>
+<li><a href="#user_timeline">GET statuses/user_timeline</a></li>
+<li><a href="#search_tweets">GET search/tweets</a></li>
+<li><a href="#trend_place">GET trends/place</a></li>
+<li><a href="#rate_limit_status">GET application/rate_limit_status</a></li>
+</ul>
+</li>
+<li><a href="#requests-and-responses">Requests and Responses</a></li>
+<li><a href="#whole-code">Whole Code</a></li>
+</ul>
+</li>
+<li><a href="#project-structure">Project Structure</a></li>
+<li><a href="#conclusions">Conclusions</a></li>
+</ol><h1>
+<a name="intro" class="anchor" href="#intro"><span class="octicon octicon-link"></span></a>Intro</h1>
+
+<p>This tutorial is part of the example use cases of the <a href="http://samguinea.github.io/Specl">Specl</a> language: an assertion constraint language extremely flexible.<br>
+Here we use it's capability for extract informations obtained via Twitter's REST APIs version 1.1, so from JSON response messages.<br>
+The example is based on an <a href="https://dev.twitter.com/docs/auth/application-only-auth">application-only authentication</a> which doesn't need a program to login as a specific user. In this way, the set of accessible informations are the ones that are public (publicly accessible tweets, lists or user information), in a read-only manner (for example is useful for widgets and similar).<br>
+For this demo it's enough, but if interested in a deeper use of Twitter take a look at <a href="https://dev.twitter.com/docs/auth/obtaining-access-tokens">     OAuth signed requests</a>.</p>
+
+<h1>
+<a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>Setup</h1>
+
+<p>The application is developed in Java: from the tests to the endpoints calls, that are made with a few methods.<br>
+If necessary there are specific Java library for Twitter (such as <a href="http://twitter4j.org">Twitter4j</a>).</p>
+
+<p>We're going to use <a href="http://eclipse.org/">Eclipse IDE</a>.</p>
+
+<h2>
+<a name="download-libraries" class="anchor" href="#download-libraries"><span class="octicon octicon-link"></span></a>Download Libraries</h2>
+
+<p>Required:</p>
+
+<ul>
+<li>Specl-Analyzer</li>
+<li>Specl</li>
+<li><a href="https://code.google.com/p/json-simple/">json-simple-1.1</a></li>
+<li><a href="http://commons.apache.org/proper/commons-codec/download_codec.cgi">Apache Commonds Codec</a></li>
+</ul><h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>Save libraries in a folder inside your project (we called it <em>lib</em>).<br>
+Then, from Eclipse, select the libraries, right click on them and select <em>Add to build path</em> from the <em>Build path...</em> voice.</p>
+
+<img src="img/twitterrest/00-ImportLibs.png" alt="Add Libraries" style="max-width:100%;">
+
+<h1>
+<a name="twitter-application-registration" class="anchor" href="#twitter-application-registration"><span class="octicon octicon-link"></span></a>Twitter Application Registration</h1>
+
+<p>Now we need to register a new application, for granting the rights to use APIs. Note that a Twitter account is mandatory for proceed.<br></p>
+
+<img src="img/twitterrest/01-DevTwitter.png" alt="Twitter Dev" style="max-width:100%;">
+
+<p>Go to <a href="https://dev.twitter.com">https://dev.twitter.com</a>, sign up with your account and then select from the dropdown menu <em>My Application</em>.</p>
+
+<img src="img/twitterrest/02-NewApp.png" alt="New Application" style="max-width:100%;">
+
+<p>At this point, create a new application, filling all the required fields and go on.</p>
+
+<img src="img/twitterrest/03-AppInfo.png" alt="Application's Fields" style="max-width:100%;">
+
+<p>At the end of the day you'll have access to your application and its settings, in particular to the <strong>Consumer Key</strong> and <strong>Consumer Secret</strong> (remember that the latter must not be shared), that we'll use sooner.</p>
+
+<img src="img/twitterrest/04-AppData.png" alt="Application's Details" style="max-width:100%;">
+
+<h1>
+<a name="code" class="anchor" href="#code"><span class="octicon octicon-link"></span></a>Code</h1>
+
+<p>In this section we illustrate the portions of code.</p>
+
+<h2>
+<a name="authentication-process" class="anchor" href="#authentication-process"><span class="octicon octicon-link"></span></a>Authentication Process</h2>
+
+<p>The procedure for Application-only authentication goes through the next steps:</p>
+
+<ol>
+<li>Combine the key and secret together and encode it with a base64 encoding.</li>
+<li>Use that new encoded key to ask Twitter for a <em>bearer token</em>.</li>
+<li>Get the token back from Twitter, save it and then supply it in the headers of additional requests.</li>
+</ol><p>So, we have to create a function that will take consumer key and consumer secret, meld them together and encode them. For doing this we need to use the Apache Commonds Codec to encode the keys into base64.</p>
+
+<div class="highlight highlight-Java"><pre><span class="c1">// Encodes the consumer key and secret to create the basic authorization key</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">encodeKeys</span><span class="o">(</span><span class="n">String</span> <span class="n">consumerKey</span><span class="o">,</span> <span class="n">String</span> <span class="n">consumerSecret</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">String</span> <span class="n">encodedConsumerKey</span> <span class="o">=</span> <span class="n">URLEncoder</span><span class="o">.</span><span class="na">encode</span><span class="o">(</span><span class="n">consumerKey</span><span class="o">,</span> <span class="s">"UTF-8"</span><span class="o">);</span>
+        <span class="n">String</span> <span class="n">encodedConsumerSecret</span> <span class="o">=</span> <span class="n">URLEncoder</span><span class="o">.</span><span class="na">encode</span><span class="o">(</span><span class="n">consumerSecret</span><span class="o">,</span> <span class="s">"UTF-8"</span><span class="o">);</span>
+
+        <span class="n">String</span> <span class="n">fullKey</span> <span class="o">=</span> <span class="n">encodedConsumerKey</span> <span class="o">+</span> <span class="s">":"</span> <span class="o">+</span> <span class="n">encodedConsumerSecret</span><span class="o">;</span>
+        <span class="kt">byte</span><span class="o">[]</span> <span class="n">encodedBytes</span> <span class="o">=</span> <span class="n">Base64</span><span class="o">.</span><span class="na">encodeBase64</span><span class="o">(</span><span class="n">fullKey</span><span class="o">.</span><span class="na">getBytes</span><span class="o">());</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">String</span><span class="o">(</span><span class="n">encodedBytes</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">UnsupportedEncodingException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">String</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>Here we take in the key and secret, concatenate them together with a colon and then encode them using our Base64 object we got from the Apache Commons Codec package. Here we encoded them as UTF-8 encoding and return the encoded string.<br></p>
+
+<p>At this point we can require a bearer token from Twitter using the encoding keys inside <code>encodedCredentials</code>. This will be supplied in the Authorization header and passed in a SSL connection to Twitter’s authentication URL. The token will be returned as a JSON object.</p>
+
+<div class="highlight highlight-Java"><pre><span class="c1">// Constructs the request for requesting a bearer token and returns that token as a string</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">requestBearerToken</span><span class="o">(</span><span class="n">String</span> <span class="n">endPointUrl</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+    <span class="n">HttpsURLConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="n">String</span> <span class="n">encodedCredentials</span> <span class="o">=</span> <span class="n">encodeKeys</span><span class="o">(</span><span class="n">consumerKey</span><span class="o">,</span> <span class="n">consumerSecret</span><span class="o">);</span>
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="n">endPointUrl</span><span class="o">);</span>
+        <span class="n">connection</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpsURLConnection</span><span class="o">)</span> <span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setDoOutput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setDoInput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">"POST"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Host"</span><span class="o">,</span> <span class="s">"api.twitter.com"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"User-Agent"</span><span class="o">,</span> <span class="s">"Your Program Name"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Authorization"</span><span class="o">,</span> <span class="s">"Basic "</span> <span class="o">+</span> <span class="n">encodedCredentials</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Content-Type"</span><span class="o">,</span> <span class="s">"application/x-www-form-urlencoded;charset=UTF-8"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Content-Length"</span><span class="o">,</span> <span class="s">"29"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setUseCaches</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+
+        <span class="n">writeRequest</span><span class="o">(</span><span class="n">connection</span><span class="o">,</span> <span class="s">"grant_type=client_credentials"</span><span class="o">);</span>
+        <span class="c1">// we use Specl Analyzer for extract data from something like "{"access_token":"AAAAAAAAAAAAAAAAAAAAAGXPUQAAAAA...","token_type":"bearer"}"</span>
+        <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">readResponse</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+        <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $token = /access_token;\n $token.cardinality() != 0 &amp;&amp; /token_type == \"bearer\";"</span><span class="o">;</span>
+        <span class="n">Object</span> <span class="n">token</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="k">if</span><span class="o">(</span><span class="n">evaluateSpecl</span><span class="o">(</span><span class="n">response</span><span class="o">,</span> <span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
+            <span class="c1">// getVariable(str) returns the value corresponding to the passed variable name, the same as the one declared in Specl</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$token"</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="o">(</span><span class="n">token</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">?</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span> <span class="n">token</span> <span class="o">:</span> <span class="k">new</span> <span class="n">String</span><span class="o">();</span>
+
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">MalformedURLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">IOException</span><span class="o">(</span><span class="s">"Invalid endpoint URL specified."</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>Note that we've used Specl and Specl analyzer for handle the JSON and subsequently recall a Specl variable, using the <code>getVariable</code> method.</p>
+
+<h2>
+<a name="fetch-data" class="anchor" href="#fetch-data"><span class="octicon octicon-link"></span></a>Fetch Data</h2>
+
+<p>After getting the <em>bearer token</em> we could supply it in the headers of additional requests, according to our rights (remember that we use application-only authentication, so not all the possible request are available).<br>
+Those choices are the following.</p>
+
+<p><a name="user_timeline"></a></p>
+
+<h3>
+<a name="get-statusesuser_timeline" class="anchor" href="#get-statusesuser_timeline"><span class="octicon octicon-link"></span></a>GET statuses/user_timeline</h3>
+
+<p>«Returns a collection of the most recent Tweets posted by the user indicated by the <i>screen_name</i> or <i>user_id</i> parameters.»<br>
+In addition to <i>screen_name</i> there's another argument for the method referring to the number of Tweets to analyse, <em>count</em>.
+Here's the method.</p>
+
+<div class="highlight highlight-Java"><pre><span class="c1">// Fetches the text of tweets from a given user's timeline</span>
+<span class="c1">// see https://dev.twitter.com/docs/api/1.1/get/statuses/user_timeline</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="n">Object</span> <span class="nf">fetchTimelineTweet</span><span class="o">(</span><span class="n">String</span> <span class="n">screen_name</span><span class="o">,</span> <span class="kt">int</span> <span class="n">count</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+    <span class="n">HttpsURLConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+
+    <span class="n">String</span> <span class="n">baseURL</span> <span class="o">=</span> <span class="s">"https://api.twitter.com/1.1/statuses/user_timeline.json"</span><span class="o">;</span>
+    <span class="n">String</span> <span class="n">endPointUrl</span> <span class="o">=</span> <span class="n">baseURL</span> <span class="o">+</span> <span class="s">"?screen_name="</span> <span class="o">+</span> <span class="n">screen_name</span> <span class="o">+</span> <span class="s">"&amp;count="</span> <span class="o">+</span> <span class="n">count</span><span class="o">;</span>
+
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="n">endPointUrl</span><span class="o">);</span>
+        <span class="n">connection</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpsURLConnection</span><span class="o">)</span> <span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setDoOutput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setDoInput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">"GET"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Host"</span><span class="o">,</span> <span class="s">"api.twitter.com"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"User-Agent"</span><span class="o">,</span> <span class="s">"Your Program Name"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Authorization"</span><span class="o">,</span> <span class="s">"Bearer "</span> <span class="o">+</span> <span class="n">bearerToken</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setUseCaches</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+
+        <span class="c1">// Parse the JSON response into a JSON mapped object to fetch fields from.</span>
+        <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">readResponse</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+        <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $tweets = /root[text != \"\"]/text; /root.cardinality() &gt; 0;"</span><span class="o">;</span>
+        <span class="n">Object</span> <span class="n">texts</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="k">if</span><span class="o">(</span><span class="n">evaluateSpecl</span><span class="o">(</span><span class="n">response</span><span class="o">,</span> <span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
+            <span class="n">texts</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$tweets"</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="o">(</span><span class="n">texts</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">?</span> <span class="n">texts</span> <span class="o">:</span> <span class="k">new</span> <span class="n">String</span><span class="o">();</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">MalformedURLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">IOException</span><span class="o">(</span><span class="s">"Invalid endpoint URL specified."</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>With the method <code>readResponse</code> we obtain the string containing the response to the previously request, sent through the connection and with the earned <em>bearer token</em>.<br>
+Then we write the Specl assertion we want to check: we get the text of all the tweets that has non-empty text and store them in <code>$tweets</code>, verifing that the response has at least one object (<code>/root.cardinality() &gt; 0</code>).<br>
+Looking more closely at the assertions we can see that there is the step <code>/root</code>: this is introduced because the value reported by <code>response</code> is a JSON array, in this cases Specl assign that array to a generic key, precisely <code>root</code>, leading to the a default SDO (substantially a map admitting nesting).<br>
+If the evaluation of the Specl gives positive result, the value corresponding to variable <code>$tweets</code> will be assigned to <code>texts</code> (this call gives back an object of type Array).</p>
+
+<p><a name="search_tweets"></a></p>
+
+<h3>
+<a name="get-searchtweets" class="anchor" href="#get-searchtweets"><span class="octicon octicon-link"></span></a>GET search/tweets</h3>
+
+<p>«Returns a collection of relevant Tweets matching a specified query.».<br>
+With this request we're going to obtain some sort of tweets and return the <i>screen_name</i> of the authors of the tweet localized in Italy.</p>
+
+<div class="highlight highlight-Java"><pre><span class="c1">// Fetches the text of a collection of relevant Tweets matching a specified query, and return the screen-name of each italian related to the query</span>
+<span class="c1">// see https://dev.twitter.com/docs/api/1.1/get/search/tweets</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="n">Object</span> <span class="nf">fetchSearchedTweet</span><span class="o">(</span><span class="n">String</span> <span class="n">query</span><span class="o">,</span> <span class="kt">int</span> <span class="n">count</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+    <span class="n">HttpsURLConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+
+    <span class="n">String</span> <span class="n">baseURL</span> <span class="o">=</span> <span class="s">"https://api.twitter.com/1.1/search/tweets.json"</span><span class="o">;</span>
+    <span class="n">String</span> <span class="n">endPointUrl</span> <span class="o">=</span> <span class="n">baseURL</span> <span class="o">+</span> <span class="s">"?q="</span> <span class="o">+</span> <span class="n">URLEncoder</span><span class="o">.</span><span class="na">encode</span><span class="o">(</span><span class="n">query</span><span class="o">,</span> <span class="s">"UTF-8"</span><span class="o">)</span> <span class="o">+</span> <span class="s">"&amp;count="</span> <span class="o">+</span> <span class="n">count</span><span class="o">;</span>
+
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="n">endPointUrl</span><span class="o">);</span>
+        <span class="n">connection</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpsURLConnection</span><span class="o">)</span> <span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setDoOutput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setDoInput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">"GET"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Host"</span><span class="o">,</span> <span class="s">"api.twitter.com"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"User-Agent"</span><span class="o">,</span> <span class="s">"Your Program Name"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Authorization"</span><span class="o">,</span> <span class="s">"Bearer "</span> <span class="o">+</span> <span class="n">bearerToken</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setUseCaches</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+
+        <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">readResponse</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+        <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $italian_user = /statuses[lang==\"it\"]/user/screen_name; /statuses.cardinality() &gt; 0;"</span><span class="o">;</span>
+        <span class="n">Object</span> <span class="n">itu</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="k">if</span><span class="o">(</span><span class="n">evaluateSpecl</span><span class="o">(</span><span class="n">response</span><span class="o">,</span> <span class="n">assertion</span><span class="o">)){</span>
+            <span class="n">itu</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$italian_user"</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="o">(</span><span class="n">itu</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">?</span> <span class="n">itu</span> <span class="o">:</span> <span class="k">new</span> <span class="n">String</span><span class="o">();</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">MalformedURLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">IOException</span><span class="o">(</span><span class="s">"Invalid endpoint URL specified."</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>The flow is as in the previous case: get the response, fetch data with Specl and use them.<br>
+Specl selects the statuses where the language is italian (<code>/statuses[lang==\"it\"]</code>), then, for each status, gets the <i>screen_name</i> of its user. The result is an array with the list of user's names.<br>
+The variable we extract is <code>$italian_user</code>.</p>
+
+<p><a name="trend_place"></a></p>
+
+<h3>
+<a name="get-trendsplace" class="anchor" href="#get-trendsplace"><span class="octicon octicon-link"></span></a>GET trends/place</h3>
+
+<p>«Returns the top 10 trending topics for a specific WOEID, if trending information is available for it.»<br>
+(WOEID is the <a href="http://developer.yahoo.com/geo/geoplanet/">Yahoo! Where On Earth ID</a> of the location to return trending information for).<br>
+In the next snippet we obtain the trending topics for a passed WOEID, the program is expecting the ones for Milan (see the Specl string).</p>
+
+<div class="highlight highlight-Java"><pre><span class="c1">// Fetches the top 10 trends from a given city's WOEID</span>
+<span class="c1">// see https://dev.twitter.com/docs/api/1.1/get/trends/place</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="n">Object</span> <span class="nf">fetchTrendsByWOEID</span><span class="o">(</span><span class="n">String</span> <span class="n">woeid</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+    <span class="n">HttpsURLConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+
+    <span class="n">String</span> <span class="n">baseURL</span> <span class="o">=</span> <span class="s">"https://api.twitter.com/1.1/trends/place.json"</span><span class="o">;</span>
+    <span class="n">String</span> <span class="n">endPointUrl</span> <span class="o">=</span> <span class="n">baseURL</span> <span class="o">+</span> <span class="s">"?id="</span> <span class="o">+</span> <span class="n">woeid</span><span class="o">;</span>
+
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="n">endPointUrl</span><span class="o">);</span>
+        <span class="n">connection</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpsURLConnection</span><span class="o">)</span> <span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setDoOutput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setDoInput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">"GET"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Host"</span><span class="o">,</span> <span class="s">"api.twitter.com"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"User-Agent"</span><span class="o">,</span> <span class="s">"Your Program Name"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Authorization"</span><span class="o">,</span> <span class="s">"Bearer "</span> <span class="o">+</span> <span class="n">bearerToken</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setUseCaches</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+
+        <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">readResponse</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+        <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $trends = /root/trends/name;"</span>
+                <span class="o">+</span> <span class="s">"exists($elem in $trends, $elem.startsWith(\"#\")) &amp;&amp; /root/locations/name == \"Milan\";"</span><span class="o">;</span>
+
+        <span class="n">Object</span> <span class="n">trends</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="k">if</span><span class="o">(</span><span class="n">evaluateSpecl</span><span class="o">(</span><span class="n">response</span><span class="o">,</span> <span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
+            <span class="n">trends</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$trends"</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="o">(</span><span class="n">trends</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">?</span> <span class="n">trends</span> <span class="o">:</span> <span class="k">new</span> <span class="n">String</span><span class="o">();</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">MalformedURLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">IOException</span><span class="o">(</span><span class="s">"Invalid endpoint URL specified."</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>The assertions checks the existence of at least an hashtag (<code>exists($elem in $trends, $elem.startsWith(\"#\"))</code>) and that the name of the city is 'Milan' (<code>/root/locations/name == \"Milan\"</code>).<br>
+As for the <a href="#user_timeline">user_timeline</a>, the response in a JSON array, so the <code>root</code> key will be generated.<br>
+This method returns <code>$trends</code> array.</p>
+
+<p><a name="rate_limit_status"></a></p>
+
+<h3>
+<a name="get-applicationrate_limit_status" class="anchor" href="#get-applicationrate_limit_status"><span class="octicon octicon-link"></span></a>GET application/rate_limit_status</h3>
+
+<p>«Returns the current rate limits for methods belonging to the specified resource families.»<br>
+This GET method is related to the limitations of the use of APIs applied by Twitter (see <a href="https://dev.twitter.com/docs/rate-limiting/1.1">REST API Rate Limiting in v1.1</a>).<br>
+Here we retrieve the state of our limits and calculate the percentage with respect to the thresholds.</p>
+
+<div class="highlight highlight-Java"><pre><span class="c1">// Fetches the status of the api limits</span>
+<span class="c1">// see https://dev.twitter.com/docs/api/1.1/get/application/rate_limit_status</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Object</span><span class="o">&gt;</span> <span class="n">fetchRateLimitStatus</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+    <span class="n">HttpsURLConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+
+    <span class="n">String</span> <span class="n">endPointUrl</span> <span class="o">=</span> <span class="s">"https://api.twitter.com/1.1/application/rate_limit_status.json?resources=search,statuses,trends"</span><span class="o">;</span>
+
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="n">endPointUrl</span><span class="o">);</span>
+        <span class="n">connection</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpsURLConnection</span><span class="o">)</span> <span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setDoOutput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setDoInput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">"GET"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Host"</span><span class="o">,</span> <span class="s">"api.twitter.com"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"User-Agent"</span><span class="o">,</span> <span class="s">"Your Program Name"</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Authorization"</span><span class="o">,</span> <span class="s">"Bearer "</span> <span class="o">+</span> <span class="n">bearerToken</span><span class="o">);</span>
+        <span class="n">connection</span><span class="o">.</span><span class="na">setUseCaches</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+
+        <span class="c1">// Parse the JSON response into a JSON mapped object to fetch fields from.</span>
+        <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">readResponse</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+        <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $status_remain = /resources/statuses/statusesuser_timeline/remaining;"</span> 
+            <span class="o">+</span> <span class="s">"let $status_limit = /resources/statuses/statusesuser_timeline/limit;"</span> 
+            <span class="o">+</span> <span class="s">"let $status_available = $status_remain / $status_limit * 100;"</span> 
+            <span class="o">+</span> <span class="s">"let $search_remain = /resources/search/searchtweets/remaining;"</span> 
+            <span class="o">+</span> <span class="s">"let $search_limit = /resources/search/searchtweets/limit;"</span> 
+            <span class="o">+</span> <span class="s">"let $search_available = $search_remain / $search_limit * 100;"</span> 
+            <span class="o">+</span> <span class="s">"let $trends_place_remain = /resources/trends/trendsplace/remaining;"</span> 
+            <span class="o">+</span> <span class="s">"let $trends_place_limit = /resources/trends/trendsplace/limit;"</span> 
+            <span class="o">+</span> <span class="s">"let $trends_place_available = $trends_place_remain / $trends_place_limit * 100;"</span> 
+            <span class="o">+</span> <span class="s">" !($status_available &lt;= 0 || $search_available &lt;= 0 || $trends_place_available &lt;= 0);"</span><span class="o">;</span>
+
+        <span class="n">Object</span> <span class="n">statusPercentage</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="n">Object</span> <span class="n">searchPercentage</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="n">Object</span> <span class="n">trendsPercentage</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">evaluateSpecl</span><span class="o">(</span><span class="n">response</span><span class="o">,</span> <span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
+            <span class="n">statusPercentage</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$status_available"</span><span class="o">);</span>
+            <span class="n">searchPercentage</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$search_available"</span><span class="o">);</span>
+            <span class="n">trendsPercentage</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$trends_place_available"</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">statusPercentage</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">searchPercentage</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">trendsPercentage</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Object</span><span class="o">&gt;</span> <span class="n">result</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;&gt;();</span>
+            <span class="n">result</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">"statusPercentage"</span><span class="o">,</span> <span class="n">statusPercentage</span><span class="o">);</span>
+            <span class="n">result</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">"searchPercentage"</span><span class="o">,</span> <span class="n">searchPercentage</span><span class="o">);</span>
+            <span class="n">result</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">"trendsPercentage"</span><span class="o">,</span> <span class="n">trendsPercentage</span><span class="o">);</span>
+            <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">MalformedURLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">IOException</span><span class="o">(</span><span class="s">"Invalid endpoint URL specified."</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>In this final case, we use the Specl for making simple arithmetic expression for calculating the percentage of use of each resourse, after getting the data from the JSON.<br>
+For details on resource family and requests limits see <a href="https://dev.twitter.com/docs/rate-limiting/1.1/limits">here</a>.<br>
+With the initial declaration limits, remaining requests and percertage are calculated; then the assertions checks that none of each limit has been excedeed (<code>!($status_available &lt;= 0 || $search_available &lt;= 0 || $trends_place_available &lt;= 0)</code>).<br>
+There's another little thing: the JSON returned by Twitter has some keys with non-alphanumeric characters (for example the <code>/</code> in <code>/statuses/user_timeline</code>, also conflicting with the navigation steps), in this situation Specl strips away unallowed characters and replace them with a '-' in case of white space (<code>/statuses/user_timeline</code> as become <code>statusesuser_timeline</code>). Keep this in mind when making assertions.</p>
+
+<h2>
+<a name="requests-and-responses" class="anchor" href="#requests-and-responses"><span class="octicon octicon-link"></span></a>Requests and Responses</h2>
+
+<p>The last methods are helper functions for input and output streams:</p>
+
+<div class="highlight highlight-Java"><pre><span class="c1">// Writes a request to a connection</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">writeRequest</span><span class="o">(</span><span class="n">HttpsURLConnection</span> <span class="n">connection</span><span class="o">,</span> <span class="n">String</span> <span class="n">textBody</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">BufferedWriter</span> <span class="n">wr</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedWriter</span><span class="o">(</span><span class="k">new</span> <span class="n">OutputStreamWriter</span><span class="o">(</span><span class="n">connection</span><span class="o">.</span><span class="na">getOutputStream</span><span class="o">()));</span>
+        <span class="n">wr</span><span class="o">.</span><span class="na">write</span><span class="o">(</span><span class="n">textBody</span><span class="o">);</span>
+        <span class="n">wr</span><span class="o">.</span><span class="na">flush</span><span class="o">();</span>
+        <span class="n">wr</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+
+        <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// Reads a response for a given connection and returns it as a string.</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">readResponse</span><span class="o">(</span><span class="n">HttpsURLConnection</span> <span class="n">connection</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">StringBuilder</span> <span class="n">str</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StringBuilder</span><span class="o">();</span>
+
+        <span class="n">BufferedReader</span> <span class="n">br</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="n">InputStreamReader</span><span class="o">(</span><span class="n">connection</span><span class="o">.</span><span class="na">getInputStream</span><span class="o">()));</span>
+        <span class="n">String</span> <span class="n">line</span> <span class="o">=</span> <span class="s">""</span><span class="o">;</span>
+        <span class="k">while</span> <span class="o">((</span><span class="n">line</span> <span class="o">=</span> <span class="n">br</span><span class="o">.</span><span class="na">readLine</span><span class="o">())</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">str</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="n">line</span> <span class="o">+</span> <span class="n">System</span><span class="o">.</span><span class="na">getProperty</span><span class="o">(</span><span class="s">"line.separator"</span><span class="o">));</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="n">str</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">String</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<h2>
+<a name="whole-code" class="anchor" href="#whole-code"><span class="octicon octicon-link"></span></a>Whole Code</h2>
+
+<div class="highlight highlight-Java"><pre><span class="kn">package</span> <span class="n">it</span><span class="o">.</span><span class="na">polimi</span><span class="o">.</span><span class="na">specl</span><span class="o">.</span><span class="na">twitter</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">it.polimi.specl.SpeclAnalyzer</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">it.polimi.specl.dataobject.DataObject</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">it.polimi.specl.helpers.SpeclException</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.io.BufferedReader</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.BufferedWriter</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.IOException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.InputStreamReader</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.OutputStreamWriter</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.UnsupportedEncodingException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.MalformedURLException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.URL</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.URLEncoder</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.ArrayList</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.HashMap</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.Map</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.Map.Entry</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">javax.net.ssl.HttpsURLConnection</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">org.apache.commons.codec.binary.Base64</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">TestTwitter</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">consumerKey</span> <span class="o">=</span> <span class="s">"&lt;your consumerKey&gt;"</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">consumerSecret</span> <span class="o">=</span> <span class="s">"&lt;your consumerSecret&gt;"</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">bearerToken</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="n">SpeclAnalyzer</span> <span class="n">analyzer</span><span class="o">;</span>
+
+    <span class="nd">@SuppressWarnings</span><span class="o">(</span><span class="s">"unchecked"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+
+        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"### Getting Bearer Token: "</span><span class="o">);</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">bearerToken</span> <span class="o">=</span> <span class="n">requestBearerToken</span><span class="o">(</span><span class="s">"https://api.twitter.com/oauth2/token"</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+        <span class="o">}</span>
+
+        <span class="k">try</span> <span class="o">{</span>
+
+            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"\n### TimeLineTweet:"</span><span class="o">);</span>
+            <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">texts</span> <span class="o">=</span> <span class="o">(</span><span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;)</span> <span class="n">fetchTimelineTweet</span><span class="o">(</span><span class="s">"twitterapi"</span><span class="o">,</span> <span class="mi">5</span><span class="o">);</span>
+            <span class="k">for</span> <span class="o">(</span><span class="n">Object</span> <span class="n">o</span> <span class="o">:</span> <span class="n">texts</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"* "</span> <span class="o">+</span> <span class="n">o</span><span class="o">);</span>
+            <span class="o">}</span>
+
+            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"\n### SearchedTweet (in italian):"</span><span class="o">);</span>
+            <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">names</span> <span class="o">=</span> <span class="o">(</span><span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;)</span> <span class="n">fetchSearchedTweet</span><span class="o">(</span><span class="s">"europa"</span><span class="o">,</span> <span class="mi">100</span><span class="o">);</span>
+            <span class="k">for</span> <span class="o">(</span><span class="n">Object</span> <span class="n">o</span> <span class="o">:</span> <span class="n">names</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"* "</span> <span class="o">+</span> <span class="n">o</span><span class="o">);</span>
+            <span class="o">}</span>
+
+            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"\n### Trends (related to WOEID):"</span><span class="o">);</span>
+            <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">trends</span> <span class="o">=</span> <span class="o">(</span><span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;)</span> <span class="n">fetchTrendsByWOEID</span><span class="o">(</span><span class="s">"718345"</span><span class="o">);</span>
+            <span class="k">for</span> <span class="o">(</span><span class="n">Object</span> <span class="n">o</span> <span class="o">:</span> <span class="n">trends</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"* "</span> <span class="o">+</span> <span class="n">o</span><span class="o">);</span>
+            <span class="o">}</span>
+
+            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"\n### Twitter Limits Status (available percetages):"</span><span class="o">);</span>
+            <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Object</span><span class="o">&gt;</span> <span class="n">avail</span> <span class="o">=</span> <span class="o">(</span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Object</span><span class="o">&gt;)</span> <span class="n">fetchRateLimitStatus</span><span class="o">();</span>
+            <span class="k">for</span> <span class="o">(</span><span class="n">Entry</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Object</span><span class="o">&gt;</span> <span class="n">o</span> <span class="o">:</span> <span class="n">avail</span><span class="o">.</span><span class="na">entrySet</span><span class="o">())</span> <span class="o">{</span>
+                <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"* "</span> <span class="o">+</span> <span class="n">o</span><span class="o">.</span><span class="na">getKey</span><span class="o">()</span> <span class="o">+</span> <span class="s">" = "</span> <span class="o">+</span> <span class="n">o</span><span class="o">.</span><span class="na">getValue</span><span class="o">()</span> <span class="o">+</span> <span class="s">"%"</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="c1">// Fetches the text of tweets from a given user's timeline</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="n">Object</span> <span class="nf">fetchTimelineTweet</span><span class="o">(</span><span class="n">String</span> <span class="n">screen_name</span><span class="o">,</span> <span class="kt">int</span> <span class="n">count</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+        <span class="n">HttpsURLConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+
+        <span class="n">String</span> <span class="n">baseURL</span> <span class="o">=</span> <span class="s">"https://api.twitter.com/1.1/statuses/user_timeline.json"</span><span class="o">;</span>
+        <span class="n">String</span> <span class="n">endPointUrl</span> <span class="o">=</span> <span class="n">baseURL</span> <span class="o">+</span> <span class="s">"?screen_name="</span> <span class="o">+</span> <span class="n">screen_name</span> <span class="o">+</span> <span class="s">"&amp;count="</span> <span class="o">+</span> <span class="n">count</span><span class="o">;</span>
+
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="n">endPointUrl</span><span class="o">);</span>
+            <span class="n">connection</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpsURLConnection</span><span class="o">)</span> <span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setDoOutput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setDoInput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">"GET"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Host"</span><span class="o">,</span> <span class="s">"api.twitter.com"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"User-Agent"</span><span class="o">,</span> <span class="s">"Your Program Name"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Authorization"</span><span class="o">,</span> <span class="s">"Bearer "</span> <span class="o">+</span> <span class="n">bearerToken</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setUseCaches</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+
+            <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">readResponse</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+            <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $tweets = /root[text != \"\"]/text; /root.cardinality() &gt; 0;"</span><span class="o">;</span>
+
+            <span class="n">Object</span> <span class="n">texts</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="k">if</span><span class="o">(</span><span class="n">evaluateSpecl</span><span class="o">(</span><span class="n">response</span><span class="o">,</span> <span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
+                <span class="n">texts</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$tweets"</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="k">return</span> <span class="o">(</span><span class="n">texts</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">?</span> <span class="n">texts</span> <span class="o">:</span> <span class="k">new</span> <span class="n">String</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">MalformedURLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IOException</span><span class="o">(</span><span class="s">"Invalid endpoint URL specified."</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">connection</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="c1">// Fetches the text of a collection of relevant Tweets matching a specified query, and return the screen-name of each italian related to the query</span>
+    <span class="c1">// see https://dev.twitter.com/docs/api/1.1/get/search/tweets</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="n">Object</span> <span class="nf">fetchSearchedTweet</span><span class="o">(</span><span class="n">String</span> <span class="n">query</span><span class="o">,</span> <span class="kt">int</span> <span class="n">count</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+        <span class="n">HttpsURLConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+
+        <span class="n">String</span> <span class="n">baseURL</span> <span class="o">=</span> <span class="s">"https://api.twitter.com/1.1/search/tweets.json"</span><span class="o">;</span>
+        <span class="n">String</span> <span class="n">endPointUrl</span> <span class="o">=</span> <span class="n">baseURL</span> <span class="o">+</span> <span class="s">"?q="</span> <span class="o">+</span> <span class="n">URLEncoder</span><span class="o">.</span><span class="na">encode</span><span class="o">(</span><span class="n">query</span><span class="o">,</span> <span class="s">"UTF-8"</span><span class="o">)</span> <span class="o">+</span> <span class="s">"&amp;count="</span> <span class="o">+</span> <span class="n">count</span><span class="o">;</span>
+
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="n">endPointUrl</span><span class="o">);</span>
+            <span class="n">connection</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpsURLConnection</span><span class="o">)</span> <span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setDoOutput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setDoInput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">"GET"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Host"</span><span class="o">,</span> <span class="s">"api.twitter.com"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"User-Agent"</span><span class="o">,</span> <span class="s">"Your Program Name"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Authorization"</span><span class="o">,</span> <span class="s">"Bearer "</span> <span class="o">+</span> <span class="n">bearerToken</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setUseCaches</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+
+            <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">readResponse</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+            <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $italian_user = /statuses[lang==\"it\"]/user/screen_name; /statuses.cardinality() &gt; 0;"</span><span class="o">;</span>
+
+            <span class="n">Object</span> <span class="n">itu</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="k">if</span><span class="o">(</span><span class="n">evaluateSpecl</span><span class="o">(</span><span class="n">response</span><span class="o">,</span> <span class="n">assertion</span><span class="o">)){</span>
+                <span class="n">itu</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$italian_user"</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="k">return</span> <span class="o">(</span><span class="n">itu</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">?</span> <span class="n">itu</span> <span class="o">:</span> <span class="k">new</span> <span class="n">String</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">MalformedURLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IOException</span><span class="o">(</span><span class="s">"Invalid endpoint URL specified."</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">connection</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="c1">// Fetches the top 10 trends from a given city's WOEID</span>
+    <span class="c1">// see https://dev.twitter.com/docs/api/1.1/get/trends/place</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="n">Object</span> <span class="nf">fetchTrendsByWOEID</span><span class="o">(</span><span class="n">String</span> <span class="n">woeid</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+        <span class="n">HttpsURLConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+
+        <span class="n">String</span> <span class="n">baseURL</span> <span class="o">=</span> <span class="s">"https://api.twitter.com/1.1/trends/place.json"</span><span class="o">;</span>
+        <span class="n">String</span> <span class="n">endPointUrl</span> <span class="o">=</span> <span class="n">baseURL</span> <span class="o">+</span> <span class="s">"?id="</span> <span class="o">+</span> <span class="n">woeid</span><span class="o">;</span>
+
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="n">endPointUrl</span><span class="o">);</span>
+            <span class="n">connection</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpsURLConnection</span><span class="o">)</span> <span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setDoOutput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setDoInput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">"GET"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Host"</span><span class="o">,</span> <span class="s">"api.twitter.com"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"User-Agent"</span><span class="o">,</span> <span class="s">"Your Program Name"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Authorization"</span><span class="o">,</span> <span class="s">"Bearer "</span> <span class="o">+</span> <span class="n">bearerToken</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setUseCaches</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+
+            <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">readResponse</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+            <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $trends = /root/trends/name;"</span>
+                    <span class="o">+</span> <span class="s">"exists($elem in $trends, $elem.startsWith(\"#\")) &amp;&amp; /root/locations/name == \"Milan\";"</span><span class="o">;</span>
+
+            <span class="n">Object</span> <span class="n">trends</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="k">if</span><span class="o">(</span><span class="n">evaluateSpecl</span><span class="o">(</span><span class="n">response</span><span class="o">,</span> <span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
+                <span class="n">trends</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$trends"</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="k">return</span> <span class="o">(</span><span class="n">trends</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">?</span> <span class="n">trends</span> <span class="o">:</span> <span class="k">new</span> <span class="n">String</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">MalformedURLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IOException</span><span class="o">(</span><span class="s">"Invalid endpoint URL specified."</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">connection</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="c1">// Fetches the status of the api limits</span>
+    <span class="c1">// see https://dev.twitter.com/docs/api/1.1/get/application/rate_limit_status</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Object</span><span class="o">&gt;</span> <span class="n">fetchRateLimitStatus</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+        <span class="n">HttpsURLConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+
+        <span class="n">String</span> <span class="n">endPointUrl</span> <span class="o">=</span> <span class="s">"https://api.twitter.com/1.1/application/rate_limit_status.json?resources=search,statuses,trends"</span><span class="o">;</span>
+
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="n">endPointUrl</span><span class="o">);</span>
+            <span class="n">connection</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpsURLConnection</span><span class="o">)</span> <span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setDoOutput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setDoInput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">"GET"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Host"</span><span class="o">,</span> <span class="s">"api.twitter.com"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"User-Agent"</span><span class="o">,</span> <span class="s">"Your Program Name"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Authorization"</span><span class="o">,</span> <span class="s">"Bearer "</span> <span class="o">+</span> <span class="n">bearerToken</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setUseCaches</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+
+            <span class="c1">// Parse the JSON response into a JSON mapped object to fetch fields from.</span>
+            <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">readResponse</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+            <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">""</span> <span class="o">+</span> <span class="s">"let $status_remain = /resources/statuses/statusesuser_timeline/remaining;"</span> <span class="o">+</span> <span class="s">"let $status_limit = /resources/statuses/statusesuser_timeline/limit;"</span> <span class="o">+</span> <span class="s">"let $status_available = $status_remain / $status_limit * 100;"</span> <span class="o">+</span> <span class="s">"let $search_remain = /resources/search/searchtweets/remaining;"</span> <span class="o">+</span> <span class="s">"let $search_limit = /resources/search/searchtweets/limit;"</span> <span class="o">+</span> <span class="s">"let $search_available = $search_remain / $search_limit * 100;"</span> <span class="o">+</span> <span class="s">"let $trends_place_remain = /resources/trends/trendsplace/remaining;"</span> <span class="o">+</span> <span class="s">"let $trends_place_limit = /resources/trends/trendsplace/limit;"</span> <span class="o">+</span> <span class="s">"let $trends_place_available = $trends_place_remain / $trends_place_limit * 100;"</span> <span class="o">+</span> <span class="s">" !($status_available &lt;= 0 || $search_available &lt;= 0 || $trends_place_available &lt;= 0);"</span><span class="o">;</span>
+
+            <span class="n">Object</span> <span class="n">statusPercentage</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="n">Object</span> <span class="n">searchPercentage</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="n">Object</span> <span class="n">trendsPercentage</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">evaluateSpecl</span><span class="o">(</span><span class="n">response</span><span class="o">,</span> <span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
+                <span class="n">statusPercentage</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$status_available"</span><span class="o">);</span>
+                <span class="n">searchPercentage</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$search_available"</span><span class="o">);</span>
+                <span class="n">trendsPercentage</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$trends_place_available"</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">statusPercentage</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">searchPercentage</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">trendsPercentage</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Object</span><span class="o">&gt;</span> <span class="n">result</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;&gt;();</span>
+                <span class="n">result</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">"statusPercentage"</span><span class="o">,</span> <span class="n">statusPercentage</span><span class="o">);</span>
+                <span class="n">result</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">"searchPercentage"</span><span class="o">,</span> <span class="n">searchPercentage</span><span class="o">);</span>
+                <span class="n">result</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">"trendsPercentage"</span><span class="o">,</span> <span class="n">trendsPercentage</span><span class="o">);</span>
+                <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
+            <span class="o">}</span>
+            <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">MalformedURLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IOException</span><span class="o">(</span><span class="s">"Invalid endpoint URL specified."</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">connection</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="c1">// Constructs the request for requesting a bearer token and returns that token as a string</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">requestBearerToken</span><span class="o">(</span><span class="n">String</span> <span class="n">endPointUrl</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+        <span class="n">HttpsURLConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="n">String</span> <span class="n">encodedCredentials</span> <span class="o">=</span> <span class="n">encodeKeys</span><span class="o">(</span><span class="n">consumerKey</span><span class="o">,</span> <span class="n">consumerSecret</span><span class="o">);</span>
+
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="n">endPointUrl</span><span class="o">);</span>
+            <span class="n">connection</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpsURLConnection</span><span class="o">)</span> <span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setDoOutput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setDoInput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">"POST"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Host"</span><span class="o">,</span> <span class="s">"api.twitter.com"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"User-Agent"</span><span class="o">,</span> <span class="s">"Your Program Name"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Authorization"</span><span class="o">,</span> <span class="s">"Basic "</span> <span class="o">+</span> <span class="n">encodedCredentials</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Content-Type"</span><span class="o">,</span> <span class="s">"application/x-www-form-urlencoded;charset=UTF-8"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">"Content-Length"</span><span class="o">,</span> <span class="s">"29"</span><span class="o">);</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setUseCaches</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+
+            <span class="n">writeRequest</span><span class="o">(</span><span class="n">connection</span><span class="o">,</span> <span class="s">"grant_type=client_credentials"</span><span class="o">);</span>
+
+            <span class="c1">// something like "{"access_token":"AAAAAAAAAAAAAAAAAAAAAGXPUQAAAAA...","token_type":"bearer"}"</span>
+            <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">readResponse</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+            <span class="n">String</span> <span class="n">assertion</span> <span class="o">=</span> <span class="s">"let $token = /access_token;\n $token.cardinality() != 0 &amp;&amp; /token_type == \"bearer\";"</span><span class="o">;</span>
+            <span class="n">Object</span> <span class="n">token</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="k">if</span><span class="o">(</span><span class="n">evaluateSpecl</span><span class="o">(</span><span class="n">response</span><span class="o">,</span> <span class="n">assertion</span><span class="o">))</span> <span class="o">{</span>
+                <span class="n">token</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">getVariable</span><span class="o">(</span><span class="s">"$token"</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="k">return</span> <span class="o">(</span><span class="n">token</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">?</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span> <span class="n">token</span> <span class="o">:</span> <span class="k">new</span> <span class="n">String</span><span class="o">();</span>
+
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">MalformedURLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IOException</span><span class="o">(</span><span class="s">"Invalid endpoint URL specified."</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">connection</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="c1">// Encodes the consumer key and secret to create the basic authorization key</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">encodeKeys</span><span class="o">(</span><span class="n">String</span> <span class="n">consumerKey</span><span class="o">,</span> <span class="n">String</span> <span class="n">consumerSecret</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">String</span> <span class="n">encodedConsumerKey</span> <span class="o">=</span> <span class="n">URLEncoder</span><span class="o">.</span><span class="na">encode</span><span class="o">(</span><span class="n">consumerKey</span><span class="o">,</span> <span class="s">"UTF-8"</span><span class="o">);</span>
+            <span class="n">String</span> <span class="n">encodedConsumerSecret</span> <span class="o">=</span> <span class="n">URLEncoder</span><span class="o">.</span><span class="na">encode</span><span class="o">(</span><span class="n">consumerSecret</span><span class="o">,</span> <span class="s">"UTF-8"</span><span class="o">);</span>
+
+            <span class="n">String</span> <span class="n">fullKey</span> <span class="o">=</span> <span class="n">encodedConsumerKey</span> <span class="o">+</span> <span class="s">":"</span> <span class="o">+</span> <span class="n">encodedConsumerSecret</span><span class="o">;</span>
+            <span class="kt">byte</span><span class="o">[]</span> <span class="n">encodedBytes</span> <span class="o">=</span> <span class="n">Base64</span><span class="o">.</span><span class="na">encodeBase64</span><span class="o">(</span><span class="n">fullKey</span><span class="o">.</span><span class="na">getBytes</span><span class="o">());</span>
+            <span class="k">return</span> <span class="k">new</span> <span class="nf">String</span><span class="o">(</span><span class="n">encodedBytes</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">UnsupportedEncodingException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="k">new</span> <span class="nf">String</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="c1">// Writes a request to a connection</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">writeRequest</span><span class="o">(</span><span class="n">HttpsURLConnection</span> <span class="n">connection</span><span class="o">,</span> <span class="n">String</span> <span class="n">textBody</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">BufferedWriter</span> <span class="n">wr</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedWriter</span><span class="o">(</span><span class="k">new</span> <span class="n">OutputStreamWriter</span><span class="o">(</span><span class="n">connection</span><span class="o">.</span><span class="na">getOutputStream</span><span class="o">()));</span>
+            <span class="n">wr</span><span class="o">.</span><span class="na">write</span><span class="o">(</span><span class="n">textBody</span><span class="o">);</span>
+            <span class="n">wr</span><span class="o">.</span><span class="na">flush</span><span class="o">();</span>
+            <span class="n">wr</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+
+            <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="c1">// Reads a response for a given connection and returns it as a string.</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">readResponse</span><span class="o">(</span><span class="n">HttpsURLConnection</span> <span class="n">connection</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">StringBuilder</span> <span class="n">str</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StringBuilder</span><span class="o">();</span>
+
+            <span class="n">BufferedReader</span> <span class="n">br</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="n">InputStreamReader</span><span class="o">(</span><span class="n">connection</span><span class="o">.</span><span class="na">getInputStream</span><span class="o">()));</span>
+            <span class="n">String</span> <span class="n">line</span> <span class="o">=</span> <span class="s">""</span><span class="o">;</span>
+            <span class="k">while</span> <span class="o">((</span><span class="n">line</span> <span class="o">=</span> <span class="n">br</span><span class="o">.</span><span class="na">readLine</span><span class="o">())</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">str</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="n">line</span> <span class="o">+</span> <span class="n">System</span><span class="o">.</span><span class="na">getProperty</span><span class="o">(</span><span class="s">"line.separator"</span><span class="o">));</span>
+            <span class="o">}</span>
+            <span class="k">return</span> <span class="n">str</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="k">new</span> <span class="nf">String</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">evaluateSpecl</span><span class="o">(</span><span class="n">String</span> <span class="n">jsonInput</span><span class="o">,</span> <span class="n">String</span> <span class="n">specl</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">analyzer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SpeclAnalyzer</span><span class="o">();</span>
+        <span class="n">analyzer</span><span class="o">.</span><span class="na">setJSONInput</span><span class="o">(</span><span class="n">jsonInput</span><span class="o">);</span>
+        <span class="n">DataObject</span> <span class="n">a</span> <span class="o">=</span> <span class="n">SpeclAnalyzer</span><span class="o">.</span><span class="na">getInput</span><span class="o">();</span>
+        <span class="n">a</span><span class="o">.</span><span class="na">getClass</span><span class="o">();</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">analyzer</span><span class="o">.</span><span class="na">evaluate</span><span class="o">(</span><span class="n">specl</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SpeclException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">// e.printStackTrace();</span>
+            <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+<span class="o">}</span>
+
+</pre></div>
+
+<h1>
+<a name="project-structure" class="anchor" href="#project-structure"><span class="octicon octicon-link"></span></a>Project Structure</h1>
+
+<p>The structure of the Java project</p>
+
+<img src="img/twitterrest/05-ProjStruct.png" alt="Project Structure" style="max-width:100%;">
+
+<h1>
+<a name="conclusions" class="anchor" href="#conclusions"><span class="octicon octicon-link"></span></a>Conclusions</h1>
+
+<p>Specl is a powerful and flexible language, that could be used also for extracting data from JSON in a simpler and clearer way than usual.</p>
+        
+</section>
+      </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Specl - Analyser maintained by <a href="https://github.com/rbrunetti">rbrunetti</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>

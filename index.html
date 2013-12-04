@@ -806,42 +806,42 @@ $price &gt;= 2;
 
 <p>The syntax is specified using Extended Backus-Naur Form (EBNF): </p>
 
-<pre><code>Model:
-    Declaration* Assertions ';'
+<div class="highlight highlight-ANTLR"><pre><span class="nl">Model</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="no">Declaration</span><span class="o">*</span><span class="w"> </span><span class="no">Assertions</span><span class="w"> </span><span class="s">';'</span><span class="w"></span>
 
-Declaration:
-    'let' Variable 'in' Assertion ';'
+<span class="no">Declaration</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="s">'let'</span><span class="w"> </span><span class="no">Variable</span><span class="w"> </span><span class="s">'in'</span><span class="w"> </span><span class="no">Assertion</span><span class="w"> </span><span class="s">';'</span><span class="w"></span>
 
-Assertions:
-    PrimaryAssertions (('&amp;&amp;' | '||') PrimaryAssertions )*
+<span class="no">Assertions</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="no">PrimaryAssertions</span><span class="w"> </span><span class="o">((</span><span class="s">'&amp;&amp;'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s">'||'</span><span class="o">)</span><span class="w"> </span><span class="no">PrimaryAssertions</span><span class="w"> </span><span class="o">)*</span><span class="w"></span>
 
-PrimaryAssertions:
-    '(' Assertions ')' | '!(' Assertions ')' | Assertion
+<span class="no">PrimaryAssertions</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="s">'('</span><span class="w"> </span><span class="no">Assertions</span><span class="w"> </span><span class="s">')'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s">'!('</span><span class="w"> </span><span class="no">Assertions</span><span class="w"> </span><span class="s">')'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Assertion</span><span class="w"></span>
 
-Assertion:
-    Expression Rop Expression;
+<span class="no">Assertion</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="no">Expression</span><span class="w"> </span><span class="no">Rop</span><span class="w"> </span><span class="no">Expression</span><span class="p">;</span><span class="w"></span>
 
-Expression:
-    Step+ ('.' Function)* | NumericExpression | AssertionQuantified | Array | Boolean
+<span class="nl">Expression</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="no">Step</span><span class="o">+</span><span class="w"> </span><span class="o">(</span><span class="s">'.'</span><span class="w"> </span><span class="no">Function</span><span class="o">)*</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">NumericExpression</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">AssertionQuantified</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Array</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Boolean</span><span class="w"></span>
 
-Step:
-    '/' ID ('[' Predicate ']')? | Variable
+<span class="no">Step</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="s">'/'</span><span class="w"> </span><span class="no">ID</span><span class="w"> </span><span class="o">(</span><span class="s">'['</span><span class="w"> </span><span class="no">Predicate</span><span class="w"> </span><span class="s">']'</span><span class="o">)?</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Variable</span><span class="w"></span>
 
-Predicate:
-    ID Rop (STRING|NUMBER|Variable) | NUMBER | Variable
+<span class="no">Predicate</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="no">ID</span><span class="w"> </span><span class="no">Rop</span><span class="w"> </span><span class="o">(</span><span class="no">STRING</span><span class="o">|</span><span class="no">NUMBER</span><span class="o">|</span><span class="no">Variable</span><span class="o">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">NUMBER</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Variable</span><span class="w"></span>
 
-Function:
-    ID '(' (Values)? ')'
+<span class="no">Function</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="no">ID</span><span class="w"> </span><span class="s">'('</span><span class="w"> </span><span class="o">(</span><span class="no">Values</span><span class="o">)?</span><span class="w"> </span><span class="s">')'</span><span class="w"></span>
 
-AssertionQuantified:
-    Quantifier '(' Variable 'in' Variable, Assertions ')'
+<span class="no">AssertionQuantified</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="no">Quantifier</span><span class="w"> </span><span class="s">'('</span><span class="w"> </span><span class="no">Variable</span><span class="w"> </span><span class="s">'in'</span><span class="w"> </span><span class="no">Variable</span><span class="p">,</span><span class="w"> </span><span class="no">Assertions</span><span class="w"> </span><span class="s">')'</span><span class="w"></span>
 
-Variable:
-    '$' ID
+<span class="no">Variable</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="s">'$'</span><span class="w"> </span><span class="no">ID</span><span class="w"></span>
 
-Rop:
-    '==' | '!=' | '&gt;' | '&gt;=' | '&lt;' | '&lt;='
-</code></pre>
+<span class="no">Rop</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="s">'=='</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s">'!='</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s">'&gt;'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s">'&gt;='</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s">'&lt;'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s">'&lt;='</span><span class="w"></span>
+</pre></div>
 
 <p>Productions with first capital letter are refers to rules, uppercase productions are terminals.</p>
       </section>
